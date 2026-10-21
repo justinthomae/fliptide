@@ -3652,7 +3652,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610210350;
+const BUILD=2610210647;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
@@ -3863,9 +3863,9 @@ const SOC=(()=>{
   function statusOf(id){
     const p=pres.get(id);
     if(p) return p.st==='room'?{rank:5,dot:'on',text:'In a Fliptide game lobby',join:!!p.code,ft:true}:p.st==='playing'?{rank:4,dot:'play',text:'Playing Fliptide',ft:true}:{rank:3,dot:'on',text:'Online in Fliptide',ft:true};
-    const f=ffp.get(id); if(f) return {rank:2,dot:'other',text:f.st==='playing'?'Playing Food Fight':'Online in Food Fight'};
+    const f=ffp.get(id); if(f) return {rank:2,dot:'other',text:f.st==='playing'?'Playing another Grudge Match game':'Online'};
     const s=bt.get(id), age=s&&s.last_activity_at?Date.now()-new Date(s.last_activity_at).getTime():Infinity;
-    if(age<ONLINE_MS&&s.status!=='Offline') return {rank:2,dot:'other',text:s.status==='In Game'?'Playing BoomTown':'Online in BoomTown'};
+    if(age<ONLINE_MS&&s.status!=='Offline') return {rank:2,dot:'other',text:s.status==='In Game'?'Playing another Grudge Match game':'Online'};
     return {rank:0,dot:'off',text:age<Infinity?`Last seen ${ago(age)}`:'Offline'};
   }
   const ago=ms=>{ const m=Math.round(ms/60000); if(m<60) return `${Math.max(1,m)}m ago`; const h=Math.round(m/60); if(h<48) return `${h}h ago`; return `${Math.round(h/24)}d ago` };
@@ -3906,7 +3906,7 @@ const SOC=(()=>{
     let body;
     if(!ready&&sb===null&&connecting) body='<p class="muted">Loading…</p>';
     else if(!user) body=`
-      <p class="muted">Sign in with your <b>Grudge Match</b> account to get a Fliptide profile, add friends, see who's online and invite them to your game. It's the same login as Food Fight and BoomTown.</p>
+      <p class="muted">Sign in with your <b>Grudge Match Games</b> account to get a Fliptide profile, add friends, see who's online and invite them to your game.</p>
       <button class="btn gmoauth" data-oauth="google">${G_SVG}Continue with Google</button>
       <button class="btn gmoauth" data-oauth="facebook">${F_SVG}Continue with Facebook</button>
       <div class="gmor"><span>or with email</span></div>
@@ -3921,7 +3921,7 @@ const SOC=(()=>{
     else body=friendsHTML();
     const L=user?lists():null, req=L?L.incoming.length:0;
     el.innerHTML=`<div class="sheet gmbox" role="dialog" aria-label="Profile and friends">
-      ${user?`<div class="lbtabs gmtabs" role="tablist"><button class="lbtab${view==='me'?' on':''}" data-gmtab="me">Profile</button><button class="lbtab${view==='friends'?' on':''}" data-gmtab="friends">Friends${req?` <i class="gmdot">${req}</i>`:''}</button></div>`:'<h2>Grudge Match account</h2>'}
+      ${user?`<div class="lbtabs gmtabs" role="tablist"><button class="lbtab${view==='me'?' on':''}" data-gmtab="me">Profile</button><button class="lbtab${view==='friends'?' on':''}" data-gmtab="friends">Friends${req?` <i class="gmdot">${req}</i>`:''}</button></div>`:'<h2>Grudge Match Games account</h2>'}
       <div class="gmbody">${body}</div>${msg?`<p class="gmmsg">${esc(msg)}</p>`:''}
       <div class="btnrow"><button class="btn ghost" id="gmClose">Close</button></div></div>`;
     const $=s=>el.querySelector(s), on=(attr,fn)=>el.querySelectorAll(`[${attr}]`).forEach(b=>b.onclick=()=>{ try{ sfx('tap') }catch(e){} fn(b.getAttribute(attr)) });
@@ -3953,7 +3953,7 @@ const SOC=(()=>{
     const stat=(n,l)=>`<div><b>${n}</b><small>${l}</small></div>`;
     return `<div class="gmme"><button class="gmbig" data-gmpick aria-label="Change your Fliptide picture">${picHTML(user.id,'gmavbig')}<span>Change</span></button>
       <div class="gmwho"><label class="label" for="gmMyName">Your Fliptide name</label><input id="gmMyName" maxlength="16" value="${esc((prof&&prof.display_name)||'')}" autocomplete="nickname">
-      <small class="muted">${acct&&acct.username?'@'+esc(acct.username)+' · ':''}Grudge Match account</small></div></div>
+      <small class="muted">${acct&&acct.username?'@'+esc(acct.username)+' · ':''}Grudge Match Games account</small></div></div>
       ${picking?`<div class="gmpicks"><p class="muted st-small">Your Fliptide picture is only used in Fliptide. Your other games keep their own.</p>
         <div class="avgrid">${Object.keys(AVATARS).map(k=>`<button class="avopt${avKey(prof.avatar)===k?' on':''}" data-gmav="${k}" aria-label="${esc(AV_LABELS[k])}"><img src="${avSrc(k)}" alt=""></button>`).join('')}</div>
         <label class="btn small ghost gmup">Upload a photo<input type="file" id="gmFile" accept="image/*" hidden></label></div>`:''}
