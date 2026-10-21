@@ -3652,7 +3652,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610210647;
+const BUILD=2610210648;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
@@ -3679,8 +3679,9 @@ addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible
 //  - auth.users: the shared login. public.users_public: usernames for friend search (other games' pictures are not used here)
 //  - public.gm_app_profiles, app 'fliptide': this game's own picture, name and stats, so a picture never carries over between games
 //  - public.friends: the shared friend list. public.user_statuses: BoomTown's online heartbeat (read only)
-//  - Realtime 'ft:social': who's online in Fliptide, plus invites (only acted on from accepted friends).
-//    'ff:social' is only listened to, so friends playing Food Fight show as online too.
+//  - Realtime 'gm:social', shared by all the Grudge Match games: presence {uid, game, name, st, code} plus invite messages
+//    carrying the game. Fliptide only acts on messages for 'fliptide' from accepted friends; a friend in another game
+//    shows where they are, with no Join or Invite.
 // Only the published site uses it; guests play without an account as before.
 const GM={url:'https://zhfkcjzajazsrpqeyaea.supabase.co',app:'fliptide',
   key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoZmtjanphamF6c3JwcWV5YWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MjEyNzgsImV4cCI6MjA5NTM5NzI3OH0.hWqpo8HcGwaZGDa1tMvcpeShItQSDFYEl8cREfK_2EY',
@@ -3690,6 +3691,8 @@ const isPic=k=>typeof k==='string'&&PIC_RE.test(k);
 const SOC=(()=>{
   const enabled=(/(^|\.)grudgematchgames\.com$/.test(location.hostname)||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))&&!(window.claude&&window.claude.use);
   const ONLINE_MS=3*60*1000;
+  const GAMES={fliptide:'Fliptide',foodfight:'Food Fight',broadside:'Broadside',onbelay:'On Belay',riotrace:'Riot Race',lostempires:'Lost Empires',boomtown:'BoomTown'},
+    gameName=g=>GAMES[g]||String(g||'').replace(/^./,c=>c.toUpperCase());
   let sb=null,user=null,acct=null,prof=null,rows=[],people=new Map(),fprofs=new Map(),bt=new Map(),pres=new Map(),ffp=new Map(),
     ch=null,fch=null,ffch=null,el=null,view='me',msg='',busy=false,authMode='in',searchQ='',searchRes=null,ready=false,connecting=null,
     pendingInvite=null,wantCode=null,askT=null,toastT=null,lastTrack='',picking=false,typed={};
@@ -3849,30 +3852,31 @@ const SOC=(()=>{
   function myState(){ const s=S&&S.screen; return s==='wait'?{st:'room',code:NET.code||''}:s==='play'&&S.net?{st:'playing',code:NET.code||''}:s==='play'?{st:'playing',code:''}:{st:'menu',code:''} }
   function joinSocial(){
     if(!user||ch) return;
-    ch=sb.channel('ft:social',{config:{broadcast:{self:false,ack:false},presence:{key:user.id}}});
+    ch=sb.channel('gm:social',{config:{broadcast:{self:false,ack:false},presence:{key:user.id}}});
     ch.on('presence',{event:'sync'},()=>{ pres.clear(); const st=ch.presenceState(); for(const k in st){ const p=st[k]&&st[k][0]; if(p&&p.uid) pres.set(p.uid,p) } draw(); badge() });
     ch.on('broadcast',{event:'m'},({payload})=>onMsg(payload||{}));
     ch.subscribe(s=>{ if(s==='SUBSCRIBED'){ lastTrack=''; track() } });
-    try{ ffch=sb.channel('ff:social',{config:{presence:{key:'ft-'+user.id}}}); ffch.on('presence',{event:'sync'},()=>{ ffp.clear(); const st=ffch.presenceState(); for(const k in st){ const p=st[k]&&st[k][0]; if(p&&p.uid) ffp.set(p.uid,p) } draw(); badge() }); ffch.subscribe() }catch(e){}
   }
   function track(){
-    if(!ch||!user) return; const s=myState(), info={uid:user.id,name:(prof&&prof.display_name)||nameOf(user.id),st:s.st,code:s.code};
+    if(!ch||!user) return; const s=myState(), info={uid:user.id,game:GM.app,name:(prof&&prof.display_name)||nameOf(user.id),st:s.st,code:s.code};
     const k=JSON.stringify(info); if(k===lastTrack) return; lastTrack=k; ch.track(info).catch(()=>{});
     if(pendingInvite&&s.st!=='playing'){ const m=pendingInvite; pendingInvite=null; showInvite(m) }
   }
   function statusOf(id){
     const p=pres.get(id);
+    // online in another Grudge Match game: where they are, but no Join or Invite across games
+    if(p&&p.game&&p.game!==GM.app){ const g=gameName(p.game); return p.st==='playing'?{rank:2.6,dot:'play',text:`Playing ${g}`}:p.st==='room'?{rank:2.7,dot:'on',text:`In a ${g} lobby`}:{rank:2.5,dot:'on',text:`Online in ${g}`} }
     if(p) return p.st==='room'?{rank:5,dot:'on',text:'In a Fliptide game lobby',join:!!p.code,ft:true}:p.st==='playing'?{rank:4,dot:'play',text:'Playing Fliptide',ft:true}:{rank:3,dot:'on',text:'Online in Fliptide',ft:true};
-    const f=ffp.get(id); if(f) return {rank:2,dot:'other',text:f.st==='playing'?'Playing another Grudge Match game':'Online'};
     const s=bt.get(id), age=s&&s.last_activity_at?Date.now()-new Date(s.last_activity_at).getTime():Infinity;
-    if(age<ONLINE_MS&&s.status!=='Offline') return {rank:2,dot:'other',text:s.status==='In Game'?'Playing another Grudge Match game':'Online'};
+    if(age<ONLINE_MS&&s.status!=='Offline') return {rank:2,dot:'other',text:s.status==='In Game'?'Playing BoomTown':'Online in BoomTown'};
     return {rank:0,dot:'off',text:age<Infinity?`Last seen ${ago(age)}`:'Offline'};
   }
   const ago=ms=>{ const m=Math.round(ms/60000); if(m<60) return `${Math.max(1,m)}m ago`; const h=Math.round(m/60); if(h<48) return `${h}h ago`; return `${Math.round(h/24)}d ago` };
   const okCode=c=>/^[a-z0-9]{3,9}$/i.test(String(c||''));
-  function send(m){ if(ch) ch.send({type:'broadcast',event:'m',payload:{from:user.id,name:(prof&&prof.display_name)||nameOf(user.id),...m}}).catch(()=>{}) }
+  function send(m){ if(ch) ch.send({type:'broadcast',event:'m',payload:{from:user.id,name:(prof&&prof.display_name)||nameOf(user.id),game:GM.app,...m}}).catch(()=>{}) }
   function onMsg(m){
     if(!user||m.to!==user.id||!isFriend(m.from)) return;   // only friends can reach you
+    if((m.game||GM.app)!==GM.app) return;                    // another game's invite isn't for this page
     if(m.t==='invite'&&okCode(m.code)) showInvite(m);
     else if(m.t==='ask'){ const s=myState(); if(s.st==='room'&&s.code) send({t:'code',to:m.from,code:s.code}) }
     else if(m.t==='code'&&okCode(m.code)&&wantCode===m.from){ wantCode=null; clearTimeout(askT); close(); joinByCode(String(m.code)) }

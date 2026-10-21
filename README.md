@@ -13,7 +13,7 @@ The round profile button at the top of the home screen signs players in with the
 
 - `public.gm_app_profiles` (app `fliptide`): this game's own picture (a sea creature or an uploaded photo), name and stats. Each game keeps its own row, so pictures never carry over between games. Migration: `supabase/migrations/20261021000001_gm_app_profiles.sql`.
 - `public.friends`: the shared friend list (requests, accept, decline, remove). `public.users_public`: usernames for friend search.
-- `public.user_statuses` (read only) and Realtime presence on `ff:social` (listen only) show friends who are online in BoomTown or Food Fight. `ft:social` carries Fliptide presence and game invites, acted on only from accepted friends.
+- Realtime channel `gm:social`, shared by all the Grudge Match games: presence `{uid, game, name, st, code}` and invites carrying `game`. Fliptide only acts on invites for `fliptide` from accepted friends; a friend in another game shows where they are, with no Join button. `public.user_statuses` (read only) shows friends online in BoomTown.
 - Uploaded photos go to the `uploads` bucket under `<user id>/fliptide/`.
 - The leaderboard gets a Friends tab with each friend's best score.
 
