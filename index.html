@@ -106,6 +106,52 @@ p{margin:0}
 .rowav{width:26px;height:26px;border-radius:50%;object-fit:contain;padding:2px;box-sizing:border-box;flex:none}
 .lbav{display:inline-block;width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:8px;flex:none}
 .lbav.none{border-radius:50%;background:color-mix(in srgb,var(--ink,#fff) 12%,transparent);width:22px;height:22px;margin:0 11px 0 3px}
+/* Grudge Match profile and friends */
+.gmbtn{position:relative}
+.gmbtn.has-pic{padding:0;overflow:visible}
+.gmbtn.has-pic img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.gmbtn svg{fill:none;stroke:currentColor;stroke-width:1.8}
+.gmbadge{position:absolute;top:-5px;right:-6px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#3ddc84;color:#0b2416;font:700 11px/17px var(--body);text-align:center;box-sizing:border-box}
+.gmbadge.req{background:var(--bust);color:#2a0d05}
+.gmsheet{display:grid;grid-template-columns:minmax(0,1fr);place-items:center;z-index:72}
+.gmbox{text-align:left;align-items:stretch;box-sizing:border-box;min-width:0;width:min(100%,460px);max-height:min(92vh,760px);display:flex;flex-direction:column}
+.gmbox h2{text-align:center}
+.gmbody{overflow:auto;display:flex;flex-direction:column;gap:10px;padding:2px;min-height:0}
+.gmtabs{margin-bottom:12px;align-self:stretch;width:auto}
+.gmbox .label{text-align:left}
+.gmname{text-align:left}
+.gmbox .gmwho .label{margin:0}
+.gmdot{font-style:normal;display:inline-block;min-width:16px;padding:0 4px;border-radius:8px;background:var(--bust);color:#2a0d05;font-size:11px;line-height:16px;font-weight:700}
+.gmoauth{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff;color:#1f2330;border-color:#d6dae3}
+.gmor{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.1em}
+.gmor::before,.gmor::after{content:'';flex:1;height:1px;background:color-mix(in srgb,var(--ink) 20%,transparent)}
+.gmform{display:flex;flex-direction:column;gap:8px}
+.gmform input,.gmsearch,.gmwho input{width:100%;min-width:0;box-sizing:border-box;border:2px solid color-mix(in srgb,var(--ink) 18%,transparent);background:var(--table-2);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:16px}
+.gmmsg{color:var(--wood-2);text-align:center;margin:8px 0 0}
+.gmme{display:flex;gap:14px;align-items:center}
+.gmbig{position:relative;flex:none;width:84px;height:84px;border:0;background:none;padding:0;cursor:pointer;color:var(--ink);box-shadow:none}
+.gmbig span{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);font-size:11px;background:var(--sea);color:#fff;border-radius:8px;padding:1px 7px}
+.gmavbig{display:grid;width:84px;height:84px;border-radius:50%;object-fit:cover;background:var(--table-2);display:grid;place-items:center;font-size:2rem;font-weight:700}
+.gmwho{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.gmpicks{display:flex;flex-direction:column;gap:8px;align-items:center}
+.gmup{cursor:pointer}
+.gmstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gmstats div{background:var(--table-2);border-radius:12px;padding:8px 4px;text-align:center}
+.gmstats b{display:block;font-size:1.3rem}
+.gmstats small{color:var(--ink-2);font-size:.75rem}
+.gmlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.gmrow{display:flex;align-items:center;gap:10px;background:var(--table-2);border-radius:14px;padding:7px 8px}
+.gmav{display:grid;width:38px;height:38px;border-radius:50%;flex:none;object-fit:cover;background:var(--panel-2);display:grid;place-items:center;font-weight:700}
+.gmname{flex:1;min-width:0;display:flex;flex-direction:column}
+.gmname b,.gmname small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gmname small{color:var(--ink-2);font-size:.78rem}
+.gmact{display:flex;gap:4px;flex:none}
+.gmtag{font-size:.75rem;font-weight:700;color:var(--ink-2);padding:0 4px;align-self:center}
+.gmx{padding-left:9px;padding-right:9px}
+.gmst{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:#6b7080}
+.gmst.on{background:#3ddc84}.gmst.play{background:#f5c04a}.gmst.other{background:#56b4e9}
+.gmtoast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;width:min(calc(100% - 32px),440px);box-sizing:border-box;background:var(--panel);border:1px solid color-mix(in srgb,var(--sea) 50%,transparent);border-radius:16px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.gmtoast p{flex:1;min-width:140px;margin:0}
 .avpick{display:grid;place-items:center;z-index:70}
 .avgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(100%,440px);margin:0 auto;max-height:min(62vh,520px);overflow:auto;padding:4px;box-sizing:border-box}
 @media (min-width:560px){.avgrid{grid-template-columns:repeat(6,minmax(0,1fr));width:min(100%,520px)}}
@@ -294,6 +340,8 @@ p{margin:0}
 .menu-top .iconbtn svg{width:22px;height:22px}
 .iconbtn.guidebtn[aria-pressed="true"]{outline:2.5px solid var(--sea);outline-offset:2px}
 .menu-top .tools{flex-wrap:wrap;justify-content:center}
+/* seven round buttons fit one row on a phone */
+@media (max-width:430px){.menu-top .tools{gap:6px}.menu-top .iconbtn{width:42px;height:42px}.menu-top .iconbtn svg{width:20px;height:20px}}
 .guideback{align-self:flex-start;color:#eef8f6;text-shadow:0 1px 3px rgba(4,36,42,.55)}
 .iconbtn svg,.hbtn svg{filter:drop-shadow(0 1px 1.5px rgba(0,20,30,.75))}
 .iconbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -957,7 +1005,7 @@ function installCardHTML(force){
 function menuHeaderHTML(){
   const tl=THEME.titleLogo, own=srcOf(tl), useDefault=!own&&T('title')===TEXT_DEFAULTS.title, src=own||(useDefault?MENU_LOGO:'');
   return `<header class="menu-top">${homeNarrHTML('header')}${src?`<h1 class="menu-logo"><img src="${src}" alt="${esc(T('title'))}"></h1>`:`<h1>${TX('title')}</h1>`}
-    <p class="muted">${TX('tagline')}</p><div class="tools">${toggleHTML()}<button class="iconbtn guidebtn" id="guideBtn" aria-pressed="${HOME.tab==='guide'}" aria-label="${esc(T('tabGuide'))}" title="${esc(T('tabGuide'))}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS.guide}</svg></button><button class="iconbtn" id="shareApp" aria-label="${esc(T('shareBtn'))}" title="${esc(T('shareBtn'))}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS.share}</svg></button></div>
+    <p class="muted">${TX('tagline')}</p><div class="tools">${toggleHTML()}<button class="iconbtn guidebtn" id="guideBtn" aria-pressed="${HOME.tab==='guide'}" aria-label="${esc(T('tabGuide'))}" title="${esc(T('tabGuide'))}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS.guide}</svg></button><button class="iconbtn" id="shareApp" aria-label="${esc(T('shareBtn'))}" title="${esc(T('shareBtn'))}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS.share}</svg></button>${SOC.btnHTML()}</div>
     ${SHARE.note?`<p class="muted st-small">${esc(SHARE.note)}</p>`:''}</header>`;
 }
 // the copyright line, with the company name linking to its website
@@ -1062,7 +1110,8 @@ const AVATARS={
   duck:'assets/av-duck.webp'
 };
 const AV_LABELS={tropical_fish:'Tropical fish',fish:'Fish',blowfish:'Pufferfish',octopus:'Octopus',squid:'Squid',crab:'Crab',lobster:'Lobster',shrimp:'Shrimp',turtle:'Sea turtle',dolphin:'Dolphin',spouting_whale:'Spouting whale',whale:'Whale',shark:'Shark',jellyfish:'Jellyfish',spiral_shell:'Shell',seal:'Seal',penguin:'Penguin',otter:'Otter',crocodile:'Crocodile',coral:'Coral',oyster:'Oyster',polar_bear:'Polar bear',flamingo:'Flamingo',duck:'Duck'};
-const avSrc=k=>k&&AVATARS[k]||'';
+const avSrc=k=>k&&(AVATARS[k]||(isPic(k)?k:''))||'';
+const avOk=k=>!!avSrc(k);
 // the round badge for a player: their sea creature if they picked one, otherwise their number (or AI)
 const badge=(p,i,cls='')=>`<i class="pav ${cls}${p.av?' has-av':''}" style="background:${p.color||COLORS[i]}">${p.av?`<img src="${avSrc(p.av)}" alt="${esc(AV_LABELS[p.av]||'')}">`:(isAI(p)?'AI':i+1)}</i>`;
 const pick = a => a[Math.floor(Math.random()*a.length)];
@@ -1097,11 +1146,11 @@ function setMyAvatar(k){ try{ k?localStorage.setItem('jellyflip.myAvatar',k):loc
 const AVNAME_KEY='jellyflip.avByName';
 const avNameKey=n=>{ n=cleanName(n||'').toLowerCase(); return n&&!isDefaultName(n)&&!/^player \d+$/.test(n)?n:'' };
 function avMap(){ try{ return JSON.parse(localStorage.getItem(AVNAME_KEY)||'{}')||{} }catch(e){ return {} } }
-function avForName(n){ const k=avNameKey(n), a=k&&avMap()[k]; return a&&AVATARS[a]?a:'' }
+function avForName(n){ const k=avNameKey(n), a=k&&avMap()[k]; return a&&avOk(a)?a:'' }
 function rememberAv(n,a){ const k=avNameKey(n); if(!k) return; const m=avMap(); if(a) m[k]=a; else delete m[k]; try{ localStorage.setItem(AVNAME_KEY,JSON.stringify(m)) }catch(e){} }
 // computer players always get a creature; people get the one remembered with their name
 function fillAvatars(st){
-  for(let i=0;i<8;i++){ if(st.avatars[i]&&!AVATARS[st.avatars[i]]) st.avatars[i]=null;
+  for(let i=0;i<8;i++){ if(st.avatars[i]&&!avOk(st.avatars[i])) st.avatars[i]=null;
     if(!st.avatars[i]&&st.kinds[i]==='human') st.avatars[i]=avForName(st.names[i])||null }
   for(let i=0;i<8;i++) if(!st.avatars[i]&&AI[st.kinds[i]]){
     const used=st.avatars.slice(0,Math.max(st.count||0,i+1)), free=Object.keys(AVATARS).filter(k=>!used.includes(k));
@@ -1114,7 +1163,7 @@ function setupState(prev){
   st.kinds = Array.from({length:8},(_,i)=>{ const k=st.kinds&&st.kinds[i]; return k&&(k!=='remote'||(prev&&prev.kinds&&prev.kinds.includes('remote')))?k:'human' });
   { const me=myName(), i=st.kinds.indexOf('human'); if(me&&i>=0&&isDefaultName(st.names[i])) st.names[i]=me }
   st.avatars = Array.from({length:8},(_,i)=>(st.avatars&&st.avatars[i])||null);
-  { const a=myAvatar(), i=st.kinds.indexOf('human'); if(a&&AVATARS[a]&&i>=0&&!st.avatars[i]) st.avatars[i]=a }
+  { const a=myAvatar(), i=st.kinds.indexOf('human'); if(a&&avOk(a)&&i>=0&&!st.avatars[i]) st.avatars[i]=a }
   st.count = Math.max(2,Math.min(8,st.count||3));
   fillAvatars(st);
   return {screen:'setup', setup:st};
@@ -1657,7 +1706,7 @@ function hostOnPeers(){
     // a seated player renaming themselves while waiting
     if(holder===p.peer){ const nm=cleanName(pr.name); if(nm&&g.st==='wait'&&nm!==g.names[s]){ g.names[s]=nm; changed=true } continue }
     if((holder&&here.has(holder))||Object.values(g.seats).includes(p.peer)) continue;
-    g.seats[s]=p.peer; g.names[s]=cleanName(pr.name)||g.names[s]; if(pr.av&&AVATARS[pr.av]){ g.avs=g.avs||[]; g.avs[s]=pr.av }
+    g.seats[s]=p.peer; g.names[s]=cleanName(pr.name)||g.names[s]; if(pr.av&&avOk(pr.av)){ g.avs=g.avs||[]; g.avs[s]=pr.av }
     if(S.players&&S.players[s]) S.players[s].name=g.names[s];
     changed=true;
   }
@@ -1794,7 +1843,7 @@ function renderWait(){
   const g=NET.g, host=NET.role==='host', here=new Set(NET.peers.map(p=>p.peer));
   if(!app.querySelector('#waitSeats')){
     app.innerHTML=`
-      <header class="top"><div><h1>${titleHTML()}</h1><p class="muted">Online game</p></div><div class="tools">${toggleHTML()}</div></header>
+      <header class="top"><div><h1>${titleHTML()}</h1><p class="muted">Online game</p></div><div class="tools">${toggleHTML()}${SOC.btnHTML()}</div></header>
       <div class="card">
         <div id="waitHead"></div>
         ${host?'':`<label class="name"><i style="background:var(--sea)"></i><input id="myName" maxlength="16" value="${esc(NET.myName)}" aria-label="Your name"></label>`}
@@ -1802,7 +1851,7 @@ function renderWait(){
         <div class="btnrow" id="waitBtns"></div>
       </div>
       <footer class="foot">${copyHTML()}</footer>`;
-    bindToggles(app);
+    bindToggles(app); SOC.wire(app);
     const mn=app.querySelector('#myName'); if(mn) mn.oninput=()=>{ NET.myName=cleanName(mn.value); setMyName(NET.myName);
       clearTimeout(NET.nameT); NET.nameT=setTimeout(()=>{ if(NET.room&&NET.myName) NET.room.presence({name:NET.myName}).catch(()=>{}) },400) };
   }
@@ -2823,7 +2872,7 @@ function endTurn(summary){
   S.phase=(!S.net&&!isAI(P())&&humans>1)?'handoff':'flip';
   render();
 }
-function finish(){ cloudDrop(S.saveCode); S.screen='over'; S.phase=null; render(); sfx('fanfare'); if(S.net&&S.net.host){NET.g.st='over';publishG();lobbyAnnounce()} }
+function finish(){ cloudDrop(S.saveCode); S.screen='over'; try{ SOC.recordGame() }catch(e){ console.warn('stats',e) } S.phase=null; render(); sfx('fanfare'); if(S.net&&S.net.host){NET.g.st='over';publishG();lobbyAnnounce()} }
 
 // ---------- home page: Play and Guide tabs, and narrators on each section ----------
 const HOME={tab:'play'};
@@ -2942,14 +2991,25 @@ const lbBest=sc=>['all','week','day'].find(b=>lbMakes(b,sc))||'day';
 const lbBoardWords=b=>T(b==='all'?'lbOfAll':b==='week'?'lbOfWeek':'lbOfDay');
 function lbCardHTML(force){
   if(!lbAvailable()&&!force) return '';
+  if(LB.tab==='friends'&&!SOC.user) LB.tab='week';
+  if(LB.tab==='friends') return lbFriendsHTML();
   const tab=LB.tab, list=lbList(tab);
   const when=t=>tab==='day'?new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit',timeZone:LB_TZ}):new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',...(tab==='all'?{year:'numeric'}:{}),timeZone:LB_TZ});
-  const tabs=LB_TABS.map(b=>`<button class="lbtab${b===tab?' on':''}" data-lbtab="${b}" role="tab" aria-selected="${b===tab}">${TX(b==='day'?'lbTabDay':b==='week'?'lbTabWeek':'lbTabAll')}</button>`).join('');
+  const tabs=lbTabsHTML(tab);
   const empty=tab==='day'?'lbEmptyDay':tab==='week'?'lbEmpty':'lbEmptyAll', note=tab==='day'?'lbResetDay':tab==='week'?'lbReset':'lbResetAll';
   return `<div class="card leaderboard" id="lbCard">${homeNarrHTML('lb')}<span class="label">${TX('lbTitle')}</span>
     <div class="lbtabs" role="tablist">${tabs}</div>
-    ${!LB.loaded[tab]?`<p class="muted">${LB.err[tab]?TX(/permission/i.test(LB.err[tab])?'lbBlocked':'lbOffline'):'Loading…'}</p>`:list.length?`<ol class="lbrows">${list.map((e,i)=>`<li><span class="lbrank">${i+1}</span><span class="lbname">${e.av&&AVATARS[e.av]?`<img class="lbav" src="${avSrc(e.av)}" alt="">`:'<span class="lbav none"></span>'}${esc(e.name||T('lbAnon'))}</span><span class="lbdate">${when(e.ts)}</span><b class="lbscore">${e.score}</b></li>`).join('')}</ol>`:`<p class="muted">${TX(empty)}</p>`}
+    ${!LB.loaded[tab]?`<p class="muted">${LB.err[tab]?TX(/permission/i.test(LB.err[tab])?'lbBlocked':'lbOffline'):'Loading…'}</p>`:list.length?`<ol class="lbrows">${list.map((e,i)=>`<li><span class="lbrank">${i+1}</span><span class="lbname">${e.av&&avOk(e.av)?`<img class="lbav" src="${avSrc(e.av)}" alt="">`:'<span class="lbav none"></span>'}${esc(e.name||T('lbAnon'))}</span><span class="lbdate">${when(e.ts)}</span><b class="lbscore">${e.score}</b></li>`).join('')}</ol>`:`<p class="muted">${TX(empty)}</p>`}
     <p class="muted st-small">${TX(note)} ${TX('lbRule')}</p></div>`;
+}
+function lbTabsHTML(tab){ return [...LB_TABS,...(SOC.user?['friends']:[])].map(b=>`<button class="lbtab${b===tab?' on':''}" data-lbtab="${b}" role="tab" aria-selected="${b===tab}">${b==='friends'?'Friends':TX(b==='day'?'lbTabDay':b==='week'?'lbTabWeek':'lbTabAll')}</button>`).join('') }
+// best scores of you and your Grudge Match friends (from each player's Fliptide profile)
+function lbFriendsHTML(){
+  const list=SOC.board();
+  return `<div class="card leaderboard" id="lbCard">${homeNarrHTML('lb')}<span class="label">${TX('lbTitle')}</span>
+    <div class="lbtabs" role="tablist">${lbTabsHTML('friends')}</div>
+    ${list.length?`<ol class="lbrows">${list.map((e,i)=>`<li><span class="lbrank">${i+1}</span><span class="lbname">${e.av&&avOk(e.av)?`<img class="lbav" src="${avSrc(e.av)}" alt="">`:'<span class="lbav none"></span>'}${esc(e.name)}</span><span class="lbdate">${e.games} ${e.games===1?'game':'games'}</span><b class="lbscore">${e.score}</b></li>`).join('')}</ol>`:'<p class="muted">No Fliptide games from you or your friends yet. Add friends from your profile (the round button at the top).</p>'}
+    <p class="muted st-small">Best score of each player, from their Fliptide profile.</p></div>`;
 }
 function renderLbCard(){ const el=document.getElementById('lbCard'); if(!el) return; el.outerHTML=lbCardHTML(); wireLbCard() }
 function wireLbCard(){ document.querySelectorAll('#lbCard [data-lbtab]').forEach(b=>b.onclick=()=>{ LB.tab=b.dataset.lbtab; renderLbCard() }) }
@@ -3105,7 +3165,7 @@ function openAvatarPicker(i){
   el.innerHTML=`<div class="sheet"><span class="label">${esc(st.names[i])}</span><h2>${TX('avPick')}</h2>
     <div class="avgrid">${Object.keys(AVATARS).map(k=>`<button class="avopt${k===cur?' on':''}" data-k="${k}" title="${esc(AV_LABELS[k])}" aria-label="${esc(AV_LABELS[k])}"><img src="${avSrc(k)}" alt=""></button>`).join('')}</div>
     <div class="btnrow"><button class="btn ghost" data-k="">${TX(st.kinds[i]==='human'?'avNone':'avRandom')}</button><button class="btn" data-close>${TX('close')}</button></div></div>`;
-  const done=k=>{ el.remove(); if(k!==undefined){ st.avatars[i]=k||null; if(st.kinds[i]==='human') rememberAv(st.names[i],k||''); if(i===st.kinds.indexOf('human')) setMyAvatar(k||''); save(); render() } };
+  const done=k=>{ el.remove(); if(k!==undefined){ st.avatars[i]=k||null; if(st.kinds[i]==='human') rememberAv(st.names[i],k||''); if(i===st.kinds.indexOf('human')){ setMyAvatar(k||''); if(k) SOC.fromGame(k) } save(); render() } };
   el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ sfx('tap'); done(b.dataset.k) });
   el.querySelector('[data-close]').onclick=()=>done();
   el.onclick=e=>{ if(e.target===el) done() };
@@ -3129,6 +3189,7 @@ function renderSetup(){
   const ub=app.querySelector('#updBtn'); if(ub) ub.onclick=applyUpdate;
   const sa=app.querySelector('#shareApp'); if(sa) sa.onclick=()=>{ sfx('tap'); shareApp() };
   wireLbCard();
+  SOC.wire(app);
   const gb=app.querySelector('#guideBtn'); if(gb) gb.onclick=()=>{ sfx('tap'); HOME.tab=HOME.tab==='guide'?'play':'guide'; render(); scrollTo({top:0}) };
   app.querySelectorAll('[data-hometab]').forEach(b=>b.onclick=()=>{ if(HOME.tab===b.dataset.hometab) return; sfx('tap'); HOME.tab=b.dataset.hometab; render(); scrollTo({top:0}) });
   const inow=app.querySelector('#installNow'); if(inow) inow.onclick=async()=>{ const pr=INSTALL.prompt; if(!pr) return; INSTALL.prompt=null; pr.prompt(); try{ const r=await pr.userChoice; if(r&&r.outcome==='accepted') dismissInstall(); else render() }catch(e){ render() } };
@@ -3591,7 +3652,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610171829;
+const BUILD=2610210350;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
@@ -3613,6 +3674,331 @@ function checkUpdate(){
 }
 function applyUpdate(){ const u=new URL(location.href); u.searchParams.set('v',UPD.ready); location.replace(u.href) }
 addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkUpdate() });
+// ---------- Grudge Match account: profile, friends, who's online ----------
+// Same login and friends as Food Fight and BoomTown (one Supabase project). Data:
+//  - auth.users: the shared login. public.users_public: usernames for friend search (other games' pictures are not used here)
+//  - public.gm_app_profiles, app 'fliptide': this game's own picture, name and stats, so a picture never carries over between games
+//  - public.friends: the shared friend list. public.user_statuses: BoomTown's online heartbeat (read only)
+//  - Realtime 'ft:social': who's online in Fliptide, plus invites (only acted on from accepted friends).
+//    'ff:social' is only listened to, so friends playing Food Fight show as online too.
+// Only the published site uses it; guests play without an account as before.
+const GM={url:'https://zhfkcjzajazsrpqeyaea.supabase.co',app:'fliptide',
+  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoZmtjanphamF6c3JwcWV5YWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MjEyNzgsImV4cCI6MjA5NTM5NzI3OH0.hWqpo8HcGwaZGDa1tMvcpeShItQSDFYEl8cREfK_2EY',
+  lib:'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js'};
+const PIC_RE=/^https:\/\/zhfkcjzajazsrpqeyaea\.supabase\.co\/storage\/v1\/object\/public\/uploads\/[0-9a-f-]{36}\/[A-Za-z0-9_./-]{1,120}$/;
+const isPic=k=>typeof k==='string'&&PIC_RE.test(k);
+const SOC=(()=>{
+  const enabled=(/(^|\.)grudgematchgames\.com$/.test(location.hostname)||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))&&!(window.claude&&window.claude.use);
+  const ONLINE_MS=3*60*1000;
+  let sb=null,user=null,acct=null,prof=null,rows=[],people=new Map(),fprofs=new Map(),bt=new Map(),pres=new Map(),ffp=new Map(),
+    ch=null,fch=null,ffch=null,el=null,view='me',msg='',busy=false,authMode='in',searchQ='',searchRes=null,ready=false,connecting=null,
+    pendingInvite=null,wantCode=null,askT=null,toastT=null,lastTrack='',picking=false,typed={};
+  const sent=new Set();
+  const other=r=>r.user_id===user.id?r.friend_user_id:r.user_id;
+  const nameOf=id=>{ const f=fprofs.get(id), p=people.get(id); return (f&&f.display_name)||(p&&(p.display_name||p.username))||'Player' };
+  // in-game keys: a creature key, or an uploaded picture's address; stored as 'av:<key>' or the address
+  const avKey=a=>!a?'':a.startsWith('av:')?a.slice(3):a;
+  const avStore=k=>!k?null:isPic(k)?k:AVATARS[k]?'av:'+k:null;
+  const picHTML=(id,cls)=>{ const f=id===(user&&user.id)?prof:fprofs.get(id), s=avSrc(avKey(f&&f.avatar));
+    return s?`<img class="${cls||'gmav'}" src="${s}" alt="">`:`<span class="${cls||'gmav'} none">${esc(nameOf(id).slice(0,1).toUpperCase())}</span>` };
+  const hasSession=()=>{ try{ if(localStorage.getItem('sb-zhfkcjzajazsrpqeyaea-auth-token')) return true }catch(e){} return /access_token=|error_description=/.test(location.hash)||/[?&]code=/.test(location.search) };
+  function lib(){ if(window.supabase&&window.supabase.createClient) return Promise.resolve();
+    return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=GM.lib; s.onload=res; s.onerror=()=>rej(new Error('network')); document.head.appendChild(s) }) }
+  function connect(){
+    if(!enabled) return Promise.resolve();
+    return connecting||(connecting=(async()=>{
+      try{ await lib();
+        sb=window.supabase.createClient(GM.url,GM.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+        const {data}=await sb.auth.getSession(); await setUser(data&&data.session&&data.session.user);
+        sb.auth.onAuthStateChange((ev,s)=>{ setUser(s&&s.user) });
+        setInterval(()=>{ if(user){ track(); badge() } },2000);
+      }catch(e){ console.warn('social',e); msg='Can’t reach Grudge Match accounts right now. Check your connection.'; connecting=null }
+      ready=true; draw(); badge();
+    })());
+  }
+  function init(){ if(enabled&&hasSession()) connect() }
+
+  // ---------- sign-in ----------
+  async function setUser(u){
+    if((u&&u.id)===(user&&user.id)) return;
+    user=u||null; acct=null; prof=null; rows=[]; people.clear(); fprofs.clear(); bt.clear(); pres.clear(); ffp.clear(); searchRes=null; sent.clear();
+    for(const c of [ch,fch,ffch]) if(c) try{ await sb.removeChannel(c) }catch(e){}
+    ch=fch=ffch=null; lastTrack='';
+    if(user){
+      try{ const {data}=await sb.from('users_public').select('id,username,display_name').eq('id',user.id).maybeSingle(); acct=data||{id:user.id} }catch(e){ acct={id:user.id} }
+      people.set(user.id,acct);
+      try{ const {data}=await sb.from('gm_app_profiles').select('user_id,display_name,avatar,stats').eq('user_id',user.id).eq('app',GM.app).maybeSingle(); prof=data }catch(e){}
+      // first time in Fliptide: start from the name and creature already used on this device (a fresh picture, not another game's)
+      if(!prof){ prof={user_id:user.id,display_name:(myName()||acct.display_name||acct.username||'').slice(0,16)||null,avatar:avStore(myAvatar()),stats:{}}; await saveProfile({}) }
+      toGame(); await loadFriends(); joinSocial();
+      try{ fch=sb.channel('ft-friends-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'friends'},()=>loadFriends()).subscribe() }catch(e){}
+    }
+    draw(); badge(); if(S&&S.screen==='setup') render();
+  }
+  async function guard(fn){ if(busy) return; busy=true; msg=''; draw(); try{ await fn() }catch(e){ msg=friendlyError(e) } busy=false; draw() }
+  const signIn=(email,pw)=>guard(async()=>{ await connect(); const {error}=await sb.auth.signInWithPassword({email,password:pw}); if(error) throw error });
+  const signUp=(email,pw,name)=>guard(async()=>{ await connect();
+    const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{full_name:name||undefined},emailRedirectTo:location.origin+location.pathname}});
+    if(error) throw error;
+    if(data&&data.user&&data.session&&name){ try{ await sb.from('users').update({display_name:name}).eq('id',data.user.id) }catch(e){} }
+    msg=data&&data.session?'':'Check your email to confirm your account, then sign in here.' });
+  const oauth=provider=>guard(async()=>{ await connect(); const {error}=await sb.auth.signInWithOAuth({provider,options:{redirectTo:location.origin+location.pathname}}); if(error) throw error });
+  const signOut=()=>guard(async()=>{ try{ await sb.auth.signOut() }catch(e){} await setUser(null) });
+  function friendlyError(e){ const m=String(e&&e.message||e||'');
+    if(/invalid login/i.test(m)) return 'That email and password don’t match an account.';
+    if(/already registered|already exists/i.test(m)) return 'That email already has an account. Sign in instead.';
+    if(/password/i.test(m)&&/6|characters|short/i.test(m)) return 'Passwords need at least 6 characters.';
+    if(/not confirmed/i.test(m)) return 'Confirm your email first (check your inbox), then sign in.';
+    if(/rate|too many/i.test(m)) return 'Too many tries. Wait a minute and try again.';
+    if(/fetch|network/i.test(m)) return 'Can’t reach the server. Check your connection.';
+    return m||'Something went wrong. Try again.' }
+
+  // ---------- this game's profile ----------
+  async function saveProfile(patch){
+    if(!user) return; Object.assign(prof,patch);
+    const row={user_id:user.id,app:GM.app,display_name:prof.display_name||null,avatar:prof.avatar||null,stats:prof.stats||{}};
+    try{ const {error}=await sb.from('gm_app_profiles').upsert(row,{onConflict:'user_id,app'}); if(error) throw error }catch(e){ console.warn('profile save',e); msg='Couldn’t save your profile. Check your connection.' }
+    draw(); badge();
+  }
+  // your profile is seat 1 on this device: its picture and name
+  function toGame(){
+    if(!user||!prof) return; const k=avKey(prof.avatar);
+    if(k){ setMyAvatar(k); if(prof.display_name) rememberAv(prof.display_name,k) }
+    if(prof.display_name) setMyName(prof.display_name);
+    if(S&&S.screen==='setup'&&S.setup){ const st=S.setup, i=st.kinds.indexOf('human');
+      if(i>=0){ if(k) st.avatars[i]=k; if(prof.display_name&&(isDefaultName(st.names[i])||!st.names[i].trim())) st.names[i]=prof.display_name; save() } }
+  }
+  // the creature picked for seat 1 in setup becomes your Fliptide picture too
+  function fromGame(k){ if(user&&prof){ const a=avStore(k); if(a&&a!==prof.avatar) saveProfile({avatar:a}) } }
+  function setPic(k){ const a=avStore(k); if(!user||!a) return; saveProfile({avatar:a}); toGame(); if(S&&S.screen==='setup') render() }
+  async function uploadPic(file){
+    if(!user||!file) return;
+    return guard(async()=>{
+      const img=await new Promise((res,rej)=>{ const u=URL.createObjectURL(file), im=new Image(); im.onload=()=>{ URL.revokeObjectURL(u); res(im) }; im.onerror=()=>rej(new Error('That picture couldn’t be opened. Try a JPG or PNG.')); im.src=u });
+      const c=document.createElement('canvas'), n=256; c.width=c.height=n; const g=c.getContext('2d'), s=Math.min(img.naturalWidth,img.naturalHeight);
+      g.drawImage(img,(img.naturalWidth-s)/2,(img.naturalHeight-s)/2,s,s,0,0,n,n);
+      const blob=await new Promise(r=>c.toBlob(r,'image/webp',.86))||await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
+      const ext=blob.type==='image/webp'?'webp':'jpg', path=`${user.id}/fliptide/avatar-${Date.now()}.${ext}`;
+      const {error}=await sb.storage.from('uploads').upload(path,blob,{contentType:blob.type,upsert:false}); if(error) throw error;
+      const {data}=sb.storage.from('uploads').getPublicUrl(path);
+      await saveProfile({avatar:data.publicUrl}); picking=false; toGame(); if(S&&S.screen==='setup') render();
+    });
+  }
+  // a finished game counts for whoever is you on this device: your online seat, or the seat with your name
+  function recordGame(){
+    if(!user||!prof||!S||!S.players||S.statsDone) return;
+    const ppl=S.players.map((p,i)=>[p,i]).filter(([p])=>!isAI(p)&&p.kind!=='remote');
+    const mineName=[prof.display_name,myName()].filter(Boolean).map(n=>n.toLowerCase());
+    let me=S.net?(S.net.host?(ppl[0]||[])[1]:S.net.seat):(ppl.find(([p])=>mineName.includes(String(p.name).toLowerCase()))||(ppl.length===1?ppl[0]:[]))[1];
+    if(me==null||!S.players[me]) return; S.statsDone=true;
+    const sc=S.players.map(p=>finalScore(p)), js=S.players.map(jellyCount), top=Math.max(...sc), tj=Math.min(...S.players.map((p,i)=>sc[i]===top?js[i]:99));
+    const st={...(prof.stats||{})}, mine=sc[me];
+    st.games=(st.games||0)+1; if(mine===top&&js[me]===tj) st.wins=(st.wins||0)+1;
+    st.best=Math.max(st.best||0,mine); st.points=(st.points||0)+mine; st.schools=(st.schools||0)+fishPairs(S.players[me]); st.last=Date.now();
+    saveProfile({stats:st});
+  }
+
+  // ---------- friends ----------
+  async function loadFriends(){
+    if(!user) return;
+    try{
+      const {data,error}=await sb.from('friends').select('id,user_id,friend_user_id,status,friend_name').or(`user_id.eq.${user.id},friend_user_id.eq.${user.id}`); if(error) throw error;
+      const seen=new Set(); rows=(data||[]).filter(r=>r&&!seen.has(r.id)&&seen.add(r.id));
+      const ids=[...new Set(rows.map(other))];
+      const need=ids.filter(id=>!people.has(id));
+      if(need.length){ const {data:ps}=await sb.from('users_public').select('id,username,display_name').in('id',need); (ps||[]).forEach(p=>people.set(p.id,p)) }
+      if(ids.length){ const {data:fp}=await sb.from('gm_app_profiles').select('user_id,display_name,avatar,stats').eq('app',GM.app).in('user_id',ids); (fp||[]).forEach(p=>fprofs.set(p.user_id,p)) }
+      const acc=rows.filter(r=>r.status==='accepted').map(other);
+      if(acc.length){ const {data:s}=await sb.from('user_statuses').select('user_id,status,last_activity_at').in('user_id',acc); bt.clear(); (s||[]).forEach(x=>bt.set(x.user_id,x)) }
+    }catch(e){ console.warn('friends',e) }
+    draw(); badge(); if(LB.tab==='friends') renderLbCard();
+  }
+  function lists(){
+    const by=f=>{ const m=new Map(); rows.filter(f).forEach(r=>{ const id=other(r); if(!m.has(id)) m.set(id,r) }); return [...m.entries()].map(([id,r])=>({id,r})) };
+    const blocked=new Set(rows.filter(r=>r.status==='blocked').map(other));
+    const friends=by(r=>r.status==='accepted').filter(x=>!blocked.has(x.id)); friends.forEach(x=>x.s=statusOf(x.id));
+    friends.sort((a,b)=>b.s.rank-a.s.rank||nameOf(a.id).localeCompare(nameOf(b.id)));
+    return {friends,incoming:by(r=>r.status==='pending'&&r.friend_user_id===user.id).filter(x=>!blocked.has(x.id)),outgoing:by(r=>r.status==='pending'&&r.user_id===user.id)};
+  }
+  const relation=id=>{ const rs=rows.filter(r=>other(r)===id); if(rs.some(r=>r.status==='blocked')) return 'blocked'; if(rs.some(r=>r.status==='accepted')) return 'friend';
+    if(rs.some(r=>r.status==='pending'&&r.friend_user_id===user.id)) return 'incoming'; if(rs.some(r=>r.status==='pending')) return 'outgoing'; return '' };
+  const isFriend=id=>relation(id)==='friend';
+  const request=id=>guard(async()=>{
+    const rel=relation(id); if(rel==='friend'||rel==='outgoing'||rel==='blocked') return;
+    if(rel==='incoming'){ const r=rows.find(x=>x.user_id===id&&x.friend_user_id===user.id&&x.status==='pending'); if(r){ await acceptRow(r.id); return } }
+    const {error}=await sb.from('friends').insert({user_id:user.id,friend_user_id:id,status:'pending',friend_name:nameOf(id),friend_email:''});
+    if(error&&!/duplicate|unique/i.test(error.message||'')) throw error;
+    msg=`Friend request sent to ${nameOf(id)}.`; await loadFriends() });
+  async function acceptRow(rowId){ const {error}=await sb.from('friends').update({status:'accepted'}).eq('id',rowId); if(error) throw error; await loadFriends() }
+  const accept=rowId=>guard(()=>acceptRow(rowId));
+  // decline, cancel and unfriend all remove every row between the two of you (same as BoomTown and Food Fight)
+  const drop=id=>guard(async()=>{ const {error}=await sb.from('friends').delete().or(`and(user_id.eq.${user.id},friend_user_id.eq.${id}),and(user_id.eq.${id},friend_user_id.eq.${user.id})`); if(error) throw error; await loadFriends() });
+  async function search(q){
+    searchQ=q; q=String(q||'').replace(/[^\p{L}\p{N} _.\-]/gu,'').trim().slice(0,24);
+    if(q.length<2){ searchRes=null; draw(); return }
+    try{ const {data}=await sb.from('users_public').select('id,username,display_name').or(`username.ilike.%${q}%,display_name.ilike.%${q}%`).limit(12);
+      if(searchQ.replace(/[^\p{L}\p{N} _.\-]/gu,'').trim().slice(0,24)!==q) return;
+      searchRes=(data||[]).filter(p=>p.id!==user.id); searchRes.forEach(p=>{ if(!people.has(p.id)) people.set(p.id,p) });
+      const need=searchRes.map(p=>p.id).filter(id=>!fprofs.has(id));
+      if(need.length){ const {data:fp}=await sb.from('gm_app_profiles').select('user_id,display_name,avatar,stats').eq('app',GM.app).in('user_id',need); (fp||[]).forEach(p=>fprofs.set(p.user_id,p)) }
+    }catch(e){ searchRes=[] }
+    draw();
+  }
+
+  // ---------- who's online, invites ----------
+  function myState(){ const s=S&&S.screen; return s==='wait'?{st:'room',code:NET.code||''}:s==='play'&&S.net?{st:'playing',code:NET.code||''}:s==='play'?{st:'playing',code:''}:{st:'menu',code:''} }
+  function joinSocial(){
+    if(!user||ch) return;
+    ch=sb.channel('ft:social',{config:{broadcast:{self:false,ack:false},presence:{key:user.id}}});
+    ch.on('presence',{event:'sync'},()=>{ pres.clear(); const st=ch.presenceState(); for(const k in st){ const p=st[k]&&st[k][0]; if(p&&p.uid) pres.set(p.uid,p) } draw(); badge() });
+    ch.on('broadcast',{event:'m'},({payload})=>onMsg(payload||{}));
+    ch.subscribe(s=>{ if(s==='SUBSCRIBED'){ lastTrack=''; track() } });
+    try{ ffch=sb.channel('ff:social',{config:{presence:{key:'ft-'+user.id}}}); ffch.on('presence',{event:'sync'},()=>{ ffp.clear(); const st=ffch.presenceState(); for(const k in st){ const p=st[k]&&st[k][0]; if(p&&p.uid) ffp.set(p.uid,p) } draw(); badge() }); ffch.subscribe() }catch(e){}
+  }
+  function track(){
+    if(!ch||!user) return; const s=myState(), info={uid:user.id,name:(prof&&prof.display_name)||nameOf(user.id),st:s.st,code:s.code};
+    const k=JSON.stringify(info); if(k===lastTrack) return; lastTrack=k; ch.track(info).catch(()=>{});
+    if(pendingInvite&&s.st!=='playing'){ const m=pendingInvite; pendingInvite=null; showInvite(m) }
+  }
+  function statusOf(id){
+    const p=pres.get(id);
+    if(p) return p.st==='room'?{rank:5,dot:'on',text:'In a Fliptide game lobby',join:!!p.code,ft:true}:p.st==='playing'?{rank:4,dot:'play',text:'Playing Fliptide',ft:true}:{rank:3,dot:'on',text:'Online in Fliptide',ft:true};
+    const f=ffp.get(id); if(f) return {rank:2,dot:'other',text:f.st==='playing'?'Playing Food Fight':'Online in Food Fight'};
+    const s=bt.get(id), age=s&&s.last_activity_at?Date.now()-new Date(s.last_activity_at).getTime():Infinity;
+    if(age<ONLINE_MS&&s.status!=='Offline') return {rank:2,dot:'other',text:s.status==='In Game'?'Playing BoomTown':'Online in BoomTown'};
+    return {rank:0,dot:'off',text:age<Infinity?`Last seen ${ago(age)}`:'Offline'};
+  }
+  const ago=ms=>{ const m=Math.round(ms/60000); if(m<60) return `${Math.max(1,m)}m ago`; const h=Math.round(m/60); if(h<48) return `${h}h ago`; return `${Math.round(h/24)}d ago` };
+  const okCode=c=>/^[a-z0-9]{3,9}$/i.test(String(c||''));
+  function send(m){ if(ch) ch.send({type:'broadcast',event:'m',payload:{from:user.id,name:(prof&&prof.display_name)||nameOf(user.id),...m}}).catch(()=>{}) }
+  function onMsg(m){
+    if(!user||m.to!==user.id||!isFriend(m.from)) return;   // only friends can reach you
+    if(m.t==='invite'&&okCode(m.code)) showInvite(m);
+    else if(m.t==='ask'){ const s=myState(); if(s.st==='room'&&s.code) send({t:'code',to:m.from,code:s.code}) }
+    else if(m.t==='code'&&okCode(m.code)&&wantCode===m.from){ wantCode=null; clearTimeout(askT); close(); joinByCode(String(m.code)) }
+  }
+  function joinFriend(id){
+    if(myState().st==='playing'){ msg='Finish your game first.'; draw(); return }
+    wantCode=id; send({t:'ask',to:id}); msg='Asking for their game…'; draw();
+    clearTimeout(askT); askT=setTimeout(()=>{ if(wantCode===id){ wantCode=null; msg='They didn’t answer. They may have just started or left their game.'; draw() } },5000);
+  }
+  function invite(id){ const s=myState(); if(s.st!=='room'||!s.code) return; send({t:'invite',to:id,code:s.code}); sent.add(id); msg=`Invite sent to ${nameOf(id)}.`; draw() }
+  function showInvite(m){
+    const s=myState(); if(s.code===String(m.code)) return;
+    if(s.st==='playing'){ pendingInvite=m; return }
+    let t=document.getElementById('gmToast'); if(!t){ t=document.createElement('div'); t.id='gmToast'; t.className='gmtoast'; document.body.appendChild(t) }
+    t.innerHTML=`${picHTML(m.from)}<p><b>${esc(nameOf(m.from)||m.name)}</b> invited you to their Fliptide game</p><button class="btn small primary" id="gmJoin">Join</button><button class="btn small ghost" id="gmNo">Not now</button>`;
+    t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{ t.hidden=true },25000); try{ sfx('chime') }catch(e){}
+    t.querySelector('#gmJoin').onclick=()=>{ t.hidden=true; close(); if(S&&S.screen==='play'&&!S.net) S.screen='setup'; joinByCode(String(m.code)) };
+    t.querySelector('#gmNo').onclick=()=>{ t.hidden=true };
+  }
+
+  // ---------- the profile sheet ----------
+  const G_SVG='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.2a5.3 5.3 0 0 1-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.5z"/><path fill="#34A853" d="M12 23.5c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.4 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3A11.5 11.5 0 0 0 12 23.5z"/><path fill="#FBBC05" d="M5.6 14.2a6.9 6.9 0 0 1 0-4.4v-3H1.8a11.5 11.5 0 0 0 0 10.4z"/><path fill="#EA4335" d="M12 5.1c1.7 0 3.2.6 4.4 1.7l3.3-3.3A11.5 11.5 0 0 0 1.8 6.8l3.8 3C6.5 7.1 9 5.1 12 5.1z"/></svg>';
+  const F_SVG='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4h-3V12h3V9.4c0-3 1.8-4.7 4.6-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>';
+  function open(tab){ if(!enabled) return; view=tab||(user&&lists().incoming.length?'friends':view); msg=''; searchRes=null; searchQ=''; picking=false;
+    if(!el){ el=document.createElement('div'); el.className='overlay gmsheet'; el.onclick=e=>{ if(e.target===el) close() }; document.body.appendChild(el) }
+    el.hidden=false; draw(); if(!sb) connect(); else if(user) loadFriends() }
+  function close(){ if(el) el.hidden=true }
+  function draw(){
+    if(!el||el.hidden) return;
+    const keep=document.activeElement&&document.activeElement.id==='gmSearch', caret=keep?document.activeElement.selectionStart:0;
+    let body;
+    if(!ready&&sb===null&&connecting) body='<p class="muted">Loading…</p>';
+    else if(!user) body=`
+      <p class="muted">Sign in with your <b>Grudge Match</b> account to get a Fliptide profile, add friends, see who's online and invite them to your game. It's the same login as Food Fight and BoomTown.</p>
+      <button class="btn gmoauth" data-oauth="google">${G_SVG}Continue with Google</button>
+      <button class="btn gmoauth" data-oauth="facebook">${F_SVG}Continue with Facebook</button>
+      <div class="gmor"><span>or with email</span></div>
+      <form class="gmform" id="gmAuth" autocomplete="on">
+        ${authMode==='up'?`<input id="gmName" maxlength="16" placeholder="Name players see" autocomplete="nickname" value="${esc(typed.gmName||'')}">`:''}
+        <input id="gmEmail" type="email" placeholder="Email" autocomplete="email" required value="${esc(typed.gmEmail||'')}">
+        <input id="gmPw" type="password" placeholder="Password" autocomplete="${authMode==='up'?'new-password':'current-password'}" minlength="6" required>
+        <button class="btn primary" type="submit"${busy?' disabled':''}>${authMode==='up'?'Create account':'Sign in'}</button>
+      </form>
+      <button class="linkbtn" id="gmMode">${authMode==='up'?'Already have an account? Sign in':'New here? Create an account'}</button>`;
+    else if(view==='me') body=meHTML();
+    else body=friendsHTML();
+    const L=user?lists():null, req=L?L.incoming.length:0;
+    el.innerHTML=`<div class="sheet gmbox" role="dialog" aria-label="Profile and friends">
+      ${user?`<div class="lbtabs gmtabs" role="tablist"><button class="lbtab${view==='me'?' on':''}" data-gmtab="me">Profile</button><button class="lbtab${view==='friends'?' on':''}" data-gmtab="friends">Friends${req?` <i class="gmdot">${req}</i>`:''}</button></div>`:'<h2>Grudge Match account</h2>'}
+      <div class="gmbody">${body}</div>${msg?`<p class="gmmsg">${esc(msg)}</p>`:''}
+      <div class="btnrow"><button class="btn ghost" id="gmClose">Close</button></div></div>`;
+    const $=s=>el.querySelector(s), on=(attr,fn)=>el.querySelectorAll(`[${attr}]`).forEach(b=>b.onclick=()=>{ try{ sfx('tap') }catch(e){} fn(b.getAttribute(attr)) });
+    $('#gmClose').onclick=close;
+    on('data-gmtab',t=>{ view=t; msg=''; picking=false; draw(); if(t==='friends') loadFriends() });
+    if(!user){
+      on('data-oauth',oauth);
+      el.querySelectorAll('#gmName,#gmEmail').forEach(i=>i.oninput=()=>{ typed[i.id]=i.value });   // a wrong password keeps what was typed
+      $('#gmMode').onclick=()=>{ authMode=authMode==='up'?'in':'up'; msg=''; draw() };
+      $('#gmAuth').onsubmit=e=>{ e.preventDefault(); const em=$('#gmEmail').value.trim(), pw=$('#gmPw').value; if(authMode==='up') signUp(em,pw,(($('#gmName')&&$('#gmName').value.trim())||myName()||'').slice(0,16)); else signIn(em,pw) };
+      return;
+    }
+    if(view==='me'){
+      on('data-gmpick',()=>{ picking=!picking; draw() });
+      on('data-gmav',k=>{ picking=false; setPic(k) });
+      const fi=$('#gmFile'); if(fi) fi.onchange=()=>uploadPic(fi.files&&fi.files[0]);
+      const ni=$('#gmMyName'); if(ni) ni.onchange=()=>{ const n=cleanName(ni.value).slice(0,16); if(!n||isDefaultName(n)){ ni.value=prof.display_name||''; return } const old=prof.display_name; saveProfile({display_name:n});
+        if(S&&S.screen==='setup'){ const st=S.setup, i=st.kinds.indexOf('human'); if(i>=0&&(st.names[i]===old||isDefaultName(st.names[i]))){ st.names[i]=n; save(); render() } } setMyName(n); if(prof.avatar) rememberAv(n,avKey(prof.avatar)) };
+      $('#gmOut').onclick=signOut;
+    } else {
+      const fs=$('#gmSearch'); let t=null; fs.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>search(fs.value),250) };
+      if(keep){ fs.focus(); try{ fs.setSelectionRange(caret,caret) }catch(e){} }
+      on('data-add',request); on('data-acc',request); on('data-accrow',accept); on('data-drop',drop); on('data-inv',invite); on('data-join',joinFriend);
+      on('data-unf',id=>{ if(confirm(`Remove ${nameOf(id)} from your friends?`)) drop(id) });
+    }
+  }
+  function meHTML(){
+    const st=prof&&prof.stats||{}, g=st.games||0;
+    const stat=(n,l)=>`<div><b>${n}</b><small>${l}</small></div>`;
+    return `<div class="gmme"><button class="gmbig" data-gmpick aria-label="Change your Fliptide picture">${picHTML(user.id,'gmavbig')}<span>Change</span></button>
+      <div class="gmwho"><label class="label" for="gmMyName">Your Fliptide name</label><input id="gmMyName" maxlength="16" value="${esc((prof&&prof.display_name)||'')}" autocomplete="nickname">
+      <small class="muted">${acct&&acct.username?'@'+esc(acct.username)+' · ':''}Grudge Match account</small></div></div>
+      ${picking?`<div class="gmpicks"><p class="muted st-small">Your Fliptide picture is only used in Fliptide. Your other games keep their own.</p>
+        <div class="avgrid">${Object.keys(AVATARS).map(k=>`<button class="avopt${avKey(prof.avatar)===k?' on':''}" data-gmav="${k}" aria-label="${esc(AV_LABELS[k])}"><img src="${avSrc(k)}" alt=""></button>`).join('')}</div>
+        <label class="btn small ghost gmup">Upload a photo<input type="file" id="gmFile" accept="image/*" hidden></label></div>`:''}
+      <div class="gmstats">${stat(g,g===1?'game':'games')}${stat(st.wins||0,'wins')}${stat(g?Math.round((st.wins||0)/g*100)+'%':'–','win rate')}${stat(st.best||0,'best score')}${stat(g?(st.points/g).toFixed(1):'–','avg score')}${stat(st.schools||0,'schools')}</div>
+      <p class="muted st-small">Games count for the seat with your name on this device, or your seat in an online game.</p>
+      <button class="btn small ghost" id="gmOut">Sign out</button>`;
+  }
+  function friendsHTML(){
+    const L=lists(), s=myState(), inRoom=s.st==='room'&&!!s.code;
+    const row=(id,actions,line)=>`<li class="gmrow">${picHTML(id)}<span class="gmname"><b>${esc(nameOf(id))}</b>${line||''}</span><span class="gmact">${actions}</span></li>`;
+    const stLine=x=>`<small><i class="gmst ${x.dot}"></i>${esc(x.text)}</small>`;
+    return `<input id="gmSearch" class="gmsearch" placeholder="Add a friend by username" value="${esc(searchQ)}" autocomplete="off" spellcheck="false" enterkeyhint="search">
+      ${searchRes?`<ul class="gmlist">${searchRes.length?searchRes.map(p=>{ const rel=relation(p.id);
+        const a=rel==='friend'?'<span class="gmtag">Friends</span>':rel==='outgoing'?'<span class="gmtag">Sent</span>':rel==='incoming'?`<button class="btn small primary" data-acc="${esc(p.id)}">Accept</button>`:rel==='blocked'?'':`<button class="btn small primary" data-add="${esc(p.id)}">Add</button>`;
+        return row(p.id,a,p.username?`<small>@${esc(p.username)}</small>`:'') }).join(''):'<li class="muted">Nobody by that name yet.</li>'}</ul>`:''}
+      ${L.incoming.length?`<span class="label">Friend requests</span><ul class="gmlist">${L.incoming.map(x=>row(x.id,`<button class="btn small primary" data-accrow="${esc(x.r.id)}">Accept</button><button class="btn small ghost" data-drop="${esc(x.id)}">Decline</button>`,'<small>wants to be friends</small>')).join('')}</ul>`:''}
+      <span class="label">Friends${L.friends.length?` · ${L.friends.filter(x=>x.s.rank>=2).length} online`:''}</span>
+      ${inRoom?'<p class="muted st-small">You’re in a game lobby: tap Invite to call a friend in.</p>':''}
+      <ul class="gmlist">${L.friends.length?L.friends.map(x=>{ let a='';
+        if(inRoom&&x.s.ft) a=sent.has(x.id)?'<span class="gmtag">Invited</span>':`<button class="btn small primary" data-inv="${esc(x.id)}">Invite</button>`;
+        else if(x.s.join&&!inRoom) a=`<button class="btn small primary" data-join="${esc(x.id)}">Join</button>`;
+        a+=`<button class="btn small ghost gmx" data-unf="${esc(x.id)}" aria-label="Remove ${esc(nameOf(x.id))}">✕</button>`;
+        return row(x.id,a,stLine(x.s)) }).join(''):`<li class="muted">No friends yet. Search for someone above, or share your username${acct&&acct.username?': <b>'+esc(acct.username)+'</b>':''}.</li>`}</ul>
+      ${L.outgoing.length?`<span class="label">Sent requests</span><ul class="gmlist">${L.outgoing.map(x=>row(x.id,`<button class="btn small ghost" data-drop="${esc(x.id)}">Cancel</button>`,'<small>waiting for them</small>')).join('')}</ul>`:''}`;
+  }
+  // the round profile button next to the other header bubbles: your picture once signed in, plus a count of requests or friends online
+  function btnHTML(){
+    if(!enabled) return '';
+    const k=user&&prof?avKey(prof.avatar):'', s=avSrc(k);
+    return `<button class="iconbtn gmbtn${s?' has-pic':''}" id="gmBtn" aria-label="Profile and friends" title="Profile and friends">${s?`<img src="${s}" alt="">`:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 20c.8-3.9 3.6-6 7.2-6s6.4 2.1 7.2 6"/></svg>`}<span class="gmbadge" hidden></span></button>`;
+  }
+  function badge(){
+    const L=user?lists():null, inc=L?L.incoming.length:0, n=L?L.friends.filter(x=>x.s.rank>=2).length:0;
+    document.querySelectorAll('.gmbadge').forEach(b=>{ b.hidden=!inc&&!n; b.textContent=inc?String(inc):String(n); b.classList.toggle('req',!!inc) });
+  }
+  function wire(root){ const b=(root||document).querySelector('#gmBtn'); if(b) b.onclick=()=>{ try{ sfx('tap') }catch(e){} open() }; badge() }
+  // friends' best Fliptide scores, for the leaderboard's Friends tab
+  function board(){
+    if(!user) return [];
+    const ids=[user.id,...lists().friends.map(x=>x.id)];
+    return ids.map(id=>{ const f=id===user.id?prof:fprofs.get(id), st=f&&f.stats||{}; return {id,name:nameOf(id)+(id===user.id?' (you)':''),av:avKey(f&&f.avatar),score:st.best||0,ts:st.last||0,games:st.games||0} })
+      .filter(e=>e.games).sort((a,b)=>b.score-a.score||a.ts-b.ts).slice(0,10);
+  }
+  return {enabled,init,open,close,wire,btnHTML,badge,recordGame,fromGame,board,get user(){ return user },get prof(){ return prof },_lists:()=>user?lists():null};
+})();
 function start(d){
   try{ applyAccess() }catch(e){}
   const sp=document.getElementById('splash');
@@ -3620,6 +4006,7 @@ function start(d){
   try{ startTheme() }catch(e){ console.error('theme',e) }
   try{ checkUpdate() }catch(e){}
   try{ lbWatch(); setInterval(lbWatch,60000) }catch(e){}
+  try{ SOC.init() }catch(e){ console.warn('social',e) }
   try{ const j=new URLSearchParams(location.search).get('join'); if(j){ const u=new URL(location.href); u.searchParams.delete('join'); history.replaceState(null,'',u.href); setTimeout(()=>joinByCode(j.replace(/[^a-z]/gi,'').slice(0,4)),300) } }catch(e){}
   try{ const q=new URLSearchParams(location.search).get('game'); if(q){ const u=new URL(location.href); u.searchParams.delete('game'); history.replaceState(null,'',u.href); setTimeout(()=>openSavedGame(q),300) } }catch(e){}
   const saved=load();
