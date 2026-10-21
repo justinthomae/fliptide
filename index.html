@@ -16,9 +16,13 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" as="image" href="assets/splash-tall.jpg" media="(max-aspect-ratio: 9/10)">
 <link rel="preload" as="image" href="assets/splash-wide.jpg" media="(min-aspect-ratio: 9/10)">
-<style>:root{padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>:root{padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+/* iOS 27 draws a frosted "scroll-edge" blur over the top of the page unless an opaque, full-width fixed box sits at the very top edge.
+   This strip is that box: the color of the top of the water background, above the game (body::after is 9) and below overlays/menus/toasts (10+, later in the page). */
+.ios-top-edge{position:fixed;top:0;left:0;right:0;width:100%;height:max(11px,env(safe-area-inset-top,0px));background:var(--ios-top-edge-color,#308b8c);pointer-events:none;z-index:10}</style>
 </head>
 <body>
+<div class="ios-top-edge" aria-hidden="true"></div>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Gochi+Hand&display=swap">
@@ -875,7 +879,7 @@ function applyTheme(){
   // backgrounds
   const shade='linear-gradient(180deg,rgba(2,24,34,.55) 0,rgba(2,24,34,.3) 170px,rgba(2,24,34,0) 340px),';
   const bgCss=(sel,e,top)=>{ if(!e) return; const src=srcOf(e), c=e.color||'var(--table)';
-    if(src) css.push(`${sel}{background:${top?shade:''}url("${src}") center/cover no-repeat ${c} !important}`); else if(e.color) css.push(`${sel}{background:${c} !important}`) };
+    if(src) css.push(`${sel}{background:${top?shade:''}url("${src}") center/cover no-repeat ${c} !important}`); else if(e.color) css.push(`${sel}{background:${c} !important}`+(top?`:root{--ios-top-edge-color:${c}}`:'')) };
   bgCss('body::before,body::after',THEME.bg&&THEME.bg.game,true); bgCss('.splash',THEME.bg&&THEME.bg.splash);
   { const n=css.length; bgCss('body::before,body::after',THEME.bg&&THEME.bg.gamePhone,true); if(css.length>n) css.push('@media (max-aspect-ratio:9/10){'+css.pop()+'}') }
   { const sa=THEME.splashArt||{}, w=srcOf(sa.wide), t=srcOf(sa.tall); if(w||t) css.push(`.splash.art{--splash-wide:url("${w||t}");--splash-tall:url("${t||w}")}`) }
@@ -3652,7 +3656,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610210350;
+const BUILD=2610210400;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
