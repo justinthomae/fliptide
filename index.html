@@ -20,6 +20,7 @@
 </head>
 <body>
 <script src="gm-invites.js"></script>
+<script src="gm-cross-invites.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Gochi+Hand&display=swap">
@@ -3661,7 +3662,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610241506;
+const BUILD=2610241516;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
@@ -3729,6 +3730,9 @@ const SOC=(()=>{
           joinHere:inv=>{ if(!okCode(inv.code)) return false; if(myState().code===String(inv.code)) return true; enter(String(inv.code)); return true },
           sound:()=>{ try{ sfx('chime') }catch(e){} }});
           GMInvites.onChange(()=>{ if(view==='invite') draw() }) }
+        // invites to other Grudge Match games through the shared gm_cross_invites (gm-cross-invites.js, polled):
+        // Join now / After this game (mid-match) / No thanks; "after this game" comes back when the match ends
+        if(window.GMCrossInvites) GMCrossInvites.init({supabase:sb,app:GM.app,isBusy:()=>!!(S&&S.screen==='play')});
         setInterval(()=>{ if(user){ track(); badge(); laterCheck() } },1000);
       }catch(e){ console.warn('social',e); msg='Can’t reach Grudge Match accounts right now. Check your connection.'; connecting=null }
       ready=true; draw(); badge();
