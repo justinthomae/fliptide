@@ -667,6 +667,7 @@ html.playing,html.playing body{overflow:hidden;overscroll-behavior:none}
 <script>/* Play can be tapped before the rest of the game has loaded: remember the tap, and the game starts the moment it's ready */
 (function(){ var g=document.getElementById('splashGo'); if(!g) return; function f(){ if(window.__jfLive) return; window.__jfPlay=1; g.classList.add('waiting') }
   g.addEventListener('pointerdown',f); g.addEventListener('touchstart',f,{passive:true}); g.addEventListener('click',f) })();</script>
+<script src="gm-invites.js"></script>
 
 
 <script>
@@ -3660,7 +3661,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610241420;
+const BUILD=2610241500;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
@@ -3721,12 +3722,24 @@ const SOC=(()=>{
         sb=window.supabase.createClient(GM.url,GM.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
         const {data}=await sb.auth.getSession(); await setUser(data&&data.session&&data.session.user);
         sb.auth.onAuthStateChange((ev,s)=>{ setUser(s&&s.user) });
+        gmInvitesInit();
         setInterval(()=>{ if(user){ track(); badge(); laterCheck() } },1000);
       }catch(e){ console.warn('social',e); msg='Can’t reach Grudge Match accounts right now. Check your connection.'; connecting=null }
       ready=true; draw(); badge();
     })());
   }
   function init(){ if(enabled&&hasSession()) connect() }
+  // the shared Grudge Match invites (gm-invites.js, public.gm_invites): the pop-up for invites from friends in any game,
+  // "after this game", and the host's notes. An invite to Fliptide joins the room right here.
+  function gmInvitesInit(){
+    const GI=window.GMInvites; if(!GI||!sb) return;
+    try{
+      GI.init({supabase:sb,game:GM.app,gameName:'Fliptide',isBusy:()=>!!(S&&S.screen==='play'),
+        joinHere:inv=>{ if(!okCode(inv.code)||(S&&S.screen==='play')) return false; close(); joinByCode(String(inv.code)); return true },
+        myName:()=>(prof&&prof.display_name)||(user?nameOf(user.id):'')||myName()||'A friend'});
+      GI.onChange(()=>{ if(view==='invite') draw() });
+    }catch(e){ console.warn('invites',e) }
+  }
 
   // ---------- sign-in ----------
   async function setUser(u){
@@ -3901,12 +3914,24 @@ const SOC=(()=>{
     wantCode=id; send({t:'ask',to:id}); msg='Asking for their game…'; draw();
     clearTimeout(askT); askT=setTimeout(()=>{ if(wantCode===id){ wantCode=null; msg='They didn’t answer. They may have just started or left their game.'; draw() } },5000);
   }
-  function invite(id,quiet){
+  // sent through the shared Grudge Match invites (reaches a friend in any game, or when they next open one);
+  // if that can't be used, the live channel still reaches friends who are online now
+  async function invite(id,quiet){
     const s=myState(); if(s.st!=='room'||!s.code) return;
-    const iid=Math.random().toString(36).slice(2,10);
-    send({t:'invite',v:2,id:iid,to:id,code:s.code,gameName:'Fliptide',url:'https://fliptide.grudgematchgames.com/?join='+encodeURIComponent(s.code)});
-    inv.set(id,{iid,code:s.code,st:'sent',at:Date.now()}); if(!quiet){ msg=`Invite sent to ${nameOf(id)}.`; draw() }
+    const code=s.code, url='https://fliptide.grudgematchgames.com/?join='+encodeURIComponent(code), GI=window.GMInvites;
+    inv.set(id,{iid:null,code,st:'sent',at:Date.now(),gm:true}); draw();
+    let r={error:'off'}; if(GI) try{ r=await GI.send({to:id,toName:nameOf(id),url,code,mode:'Online game'}) }catch(e){}
+    if(r&&r.error){
+      if(!pres.has(id)){ inv.delete(id); if(!quiet){ msg=`Couldn’t send the invite to ${nameOf(id)}. ${String(r.error).replace(/\.$/,'')}.`; draw() } return }
+      const iid=Math.random().toString(36).slice(2,10);
+      send({t:'invite',v:2,id:iid,to:id,code,gameName:'Fliptide',url});
+      inv.set(id,{iid,code,st:'sent',at:Date.now()});
+    }
+    if(!quiet){ msg=`Invite sent to ${nameOf(id)}.`; draw() } else draw()
   }
+  // the friend's answer: from the shared invites ('pending'|'now'|'later'|'declined'|'joined') or the live channel ('sent'|'now'|'later'|'no')
+  const GM_ST={pending:'sent',declined:'no'};
+  function invSt(id,x){ if(!x.gm) return x.st; const g=window.GMInvites&&GMInvites.status(id,x.code); return g?(GM_ST[g]||g):'sent' }
   const invOf=id=>{ const x=inv.get(id), s=myState(); return x&&x.code===s.code?x:null };
   // the host hears back: on the way now, coming after their current game, or not this time
   function onReply(m){
@@ -4002,7 +4027,7 @@ const SOC=(()=>{
       $('#gmOut').onclick=signOut;
     } else if(view==='invite'){
       on('data-inv',id=>invite(id));
-      on('data-invall',()=>{ const L=lists(), f=L.friends.filter(x=>pres.has(x.id)&&!invOf(x.id)); f.forEach(x=>invite(x.id,true)); msg=`Invites sent to ${f.length} friends.`; draw() });
+      on('data-invall',()=>{ const L=lists(), f=L.friends.filter(x=>!invOf(x.id)); f.forEach(x=>invite(x.id,true)); msg=`Invites sent to ${f.length} friends.`; draw() });
       clearTimeout(draw.t); if([...inv.values()].some(v=>v.st==='sent'||v.st==='no')) draw.t=setTimeout(draw,SEND_AGAIN_MS/3);
     } else {
       const fs=$('#gmSearch'); let t=null; fs.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>search(fs.value),250) };
@@ -4047,18 +4072,21 @@ const SOC=(()=>{
     if(s.st!=='room'||!s.code) return '<p class="muted">Open an online game first, then invite friends from its lobby.</p>';
     const row=(id,actions,line)=>`<li class="gmrow">${picHTML(id)}<span class="gmname"><b>${esc(nameOf(id))}</b>${line||''}</span><span class="gmact">${actions}</span></li>`;
     const reach=x=>pres.has(x.id), now=Date.now();
-    const act=x=>{ if(!reach(x)) return '';
+    // every friend can be invited: online in any game they get it there, offline they see it when they next open a Grudge Match game
+    const act=x=>{
       const v=invOf(x.id); if(!v) return `<button class="btn small primary" data-inv="${esc(x.id)}">Invite</button>`;
-      if(v.st==='now') return '<span class="gmtag ok">On the way</span>';
-      if(v.st==='later') return '<span class="gmtag ok">After their game</span>';
+      const st=invSt(x.id,v);
+      if(st==='joined') return '<span class="gmtag ok">Joined</span>';
+      if(st==='now') return '<span class="gmtag ok">On the way</span>';
+      if(st==='later') return '<span class="gmtag ok">After their game</span>';
       const again=now-v.at>SEND_AGAIN_MS?`<button class="btn small ghost" data-inv="${esc(x.id)}">Again</button>`:'';
-      return `<span class="gmtag">${v.st==='no'?'Not now':'Invited ✓'}</span>${again}` };
-    const line=x=>{ const v=invOf(x.id), st=x.s;
-      const t=v&&v.st==='later'?'Accepted · joins when their game ends':v&&v.st==='now'?'Accepted · joining now':!reach(x)&&st.rank>=2?st.text+' · can’t get invites there yet':st.text;
+      return `<span class="gmtag">${st==='no'?'Can’t make it':st==='cancelled'?'Cancelled':'Invited'}</span>${again}` };
+    const line=x=>{ const v=invOf(x.id), st=x.s, a=v&&invSt(x.id,v);
+      const t=a==='joined'?'Joined your game':a==='later'?'Accepted · joins when their game ends':a==='now'?'Accepted · joining now':st.text;
       return `<small><i class="gmst ${st.dot}"></i>${esc(t)}</small>` };
     const list=[...L.friends].sort((a,b)=>(reach(b)-reach(a))||b.s.rank-a.s.rank||nameOf(a.id).localeCompare(nameOf(b.id)));
-    const fresh=list.filter(x=>reach(x)&&!invOf(x.id));
-    return `<div class="gminvhead"><p class="muted">Game code <b>${esc(s.code.toUpperCase())}</b>. Friends playing another Grudge Match game get the invite there.</p>
+    const fresh=list.filter(x=>!invOf(x.id));
+    return `<div class="gminvhead"><p class="muted">Game code <b>${esc(s.code.toUpperCase())}</b>. Friends in another Grudge Match game get the invite there; offline friends see it when they next open one.</p>
       ${fresh.length>1?`<button class="btn small primary" data-invall>Invite all ${fresh.length}</button>`:''}</div>
       <ul class="gmlist">${list.length?list.map(x=>row(x.id,act(x),line(x))).join(''):'<li class="muted">No friends yet. Add some from the Friends tab.</li>'}</ul>`;
   }

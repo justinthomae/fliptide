@@ -14,7 +14,8 @@ The round profile button at the top of the home screen signs players in with the
 - `public.gm_app_profiles` (app `fliptide`): this game's own picture (a sea creature or an uploaded photo), name and stats. Each game keeps its own row, so pictures never carry over between games. Migration: `supabase/migrations/20261021000001_gm_app_profiles.sql`.
 - `public.friends`: the shared friend list (requests, accept, decline, remove). `public.users_public`: usernames for friend search.
 - Realtime channel `gm:social`, shared by all the Grudge Match games: presence `{uid, game, name, st, code}` and invites carrying `game`. Fliptide only acts on invites for `fliptide` from accepted friends; a friend in another game shows where they are, with no Join button. `public.user_statuses` (read only) shows friends online in BoomTown.
-- Invites follow the shared rules in `docs/gm-invites.md`: one Invite friends button in the lobby lists every friend; a friend in another Grudge Match game gets the invite there and can join now or after their current game, and the host is told which.
+- Invites go through the shared Grudge Match invites: `gm-invites.js` (the same file as Food Fight's `js/gm-invites.js`, loaded before the main script) and the `public.gm_invites` table. It shows the pop-up for invites from friends in any game, handles "after this game" and tells the host each answer. Every friend gets an Invite button (offline friends see it when they next open a Grudge Match game, for 20 minutes). If it can't be used, the older broadcast invite below is sent instead.
+- Broadcast invites follow `docs/gm-invites.md`: one Invite friends button in the lobby lists every friend; a friend in another Grudge Match game gets the invite there and can join now or after their current game, and the host is told which.
 - Uploaded photos go to the `uploads` bucket under `<user id>/fliptide/`.
 - The leaderboard gets a Friends tab with each friend's best score.
 
