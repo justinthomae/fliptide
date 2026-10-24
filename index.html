@@ -152,6 +152,13 @@ p{margin:0}
 .gmst.on{background:#3ddc84}.gmst.play{background:#f5c04a}.gmst.other{background:#56b4e9}
 .gmtoast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;width:min(calc(100% - 32px),440px);box-sizing:border-box;background:var(--panel);border:1px solid color-mix(in srgb,var(--sea) 50%,transparent);border-radius:16px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .gmtoast p{flex:1;min-width:140px;margin:0}
+.gmtoast.top{bottom:auto;top:calc(12px + env(safe-area-inset-top,0px))}
+.gmtbtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;width:100%}
+.gmtag.ok{color:#3ddc84}
+.gminvhead{display:flex;flex-direction:column;gap:8px}
+.gminvhead p{margin:0}
+.gminvite{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:6px 0 10px}
+.gminvite svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
 .avpick{display:grid;place-items:center;z-index:70}
 .avgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(100%,440px);margin:0 auto;max-height:min(62vh,520px);overflow:auto;padding:4px;box-sizing:border-box}
 @media (min-width:560px){.avgrid{grid-template-columns:repeat(6,minmax(0,1fr));width:min(100%,520px)}}
@@ -1846,12 +1853,13 @@ function renderWait(){
       <header class="top"><div><h1>${titleHTML()}</h1><p class="muted">Online game</p></div><div class="tools">${toggleHTML()}${SOC.btnHTML()}</div></header>
       <div class="card">
         <div id="waitHead"></div>
+        ${SOC.enabled?'<button class="btn gminvite" id="gmInviteBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 19c.7-3.4 3.2-5.3 6.2-5.3s5.5 1.9 6.2 5.3"/><path d="M18 8v6M15 11h6"/></svg>Invite friends</button>':''}
         ${host?'':`<label class="name"><i style="background:var(--sea)"></i><input id="myName" maxlength="16" value="${esc(NET.myName)}" aria-label="Your name"></label>`}
         <div class="seats" id="waitSeats"></div>
         <div class="btnrow" id="waitBtns"></div>
       </div>
       <footer class="foot">${copyHTML()}</footer>`;
-    bindToggles(app); SOC.wire(app);
+    bindToggles(app); SOC.wire(app); { const ib=app.querySelector('#gmInviteBtn'); if(ib) ib.onclick=()=>{ sfx('tap'); SOC.openInvite() } }
     const mn=app.querySelector('#myName'); if(mn) mn.oninput=()=>{ NET.myName=cleanName(mn.value); setMyName(NET.myName);
       clearTimeout(NET.nameT); NET.nameT=setTimeout(()=>{ if(NET.room&&NET.myName) NET.room.presence({name:NET.myName}).catch(()=>{}) },400) };
   }
@@ -3652,7 +3660,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610210648;
+const BUILD=2610241420;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
@@ -3696,7 +3704,6 @@ const SOC=(()=>{
   let sb=null,user=null,acct=null,prof=null,rows=[],people=new Map(),fprofs=new Map(),bt=new Map(),pres=new Map(),ffp=new Map(),
     ch=null,fch=null,ffch=null,el=null,view='me',msg='',busy=false,authMode='in',searchQ='',searchRes=null,ready=false,connecting=null,
     pendingInvite=null,wantCode=null,askT=null,toastT=null,lastTrack='',picking=false,typed={};
-  const sent=new Set();
   const other=r=>r.user_id===user.id?r.friend_user_id:r.user_id;
   const nameOf=id=>{ const f=fprofs.get(id), p=people.get(id); return (f&&f.display_name)||(p&&(p.display_name||p.username))||'Player' };
   // in-game keys: a creature key, or an uploaded picture's address; stored as 'av:<key>' or the address
@@ -3714,7 +3721,7 @@ const SOC=(()=>{
         sb=window.supabase.createClient(GM.url,GM.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
         const {data}=await sb.auth.getSession(); await setUser(data&&data.session&&data.session.user);
         sb.auth.onAuthStateChange((ev,s)=>{ setUser(s&&s.user) });
-        setInterval(()=>{ if(user){ track(); badge() } },2000);
+        setInterval(()=>{ if(user){ track(); badge(); laterCheck() } },1000);
       }catch(e){ console.warn('social',e); msg='Can’t reach Grudge Match accounts right now. Check your connection.'; connecting=null }
       ready=true; draw(); badge();
     })());
@@ -3724,7 +3731,7 @@ const SOC=(()=>{
   // ---------- sign-in ----------
   async function setUser(u){
     if((u&&u.id)===(user&&user.id)) return;
-    user=u||null; acct=null; prof=null; rows=[]; people.clear(); fprofs.clear(); bt.clear(); pres.clear(); ffp.clear(); searchRes=null; sent.clear();
+    user=u||null; acct=null; prof=null; rows=[]; people.clear(); fprofs.clear(); bt.clear(); pres.clear(); ffp.clear(); searchRes=null; inv.clear();
     for(const c of [ch,fch,ffch]) if(c) try{ await sb.removeChannel(c) }catch(e){}
     ch=fch=ffch=null; lastTrack='';
     if(user){
@@ -3860,7 +3867,6 @@ const SOC=(()=>{
   function track(){
     if(!ch||!user) return; const s=myState(), info={uid:user.id,game:GM.app,name:(prof&&prof.display_name)||nameOf(user.id),st:s.st,code:s.code};
     const k=JSON.stringify(info); if(k===lastTrack) return; lastTrack=k; ch.track(info).catch(()=>{});
-    if(pendingInvite&&s.st!=='playing'){ const m=pendingInvite; pendingInvite=null; showInvite(m) }
   }
   function statusOf(id){
     const p=pres.get(id);
@@ -3874,27 +3880,74 @@ const SOC=(()=>{
   const ago=ms=>{ const m=Math.round(ms/60000); if(m<60) return `${Math.max(1,m)}m ago`; const h=Math.round(m/60); if(h<48) return `${h}h ago`; return `${Math.round(h/24)}d ago` };
   const okCode=c=>/^[a-z0-9]{3,9}$/i.test(String(c||''));
   function send(m){ if(ch) ch.send({type:'broadcast',event:'m',payload:{from:user.id,name:(prof&&prof.display_name)||nameOf(user.id),game:GM.app,...m}}).catch(()=>{}) }
+  // ---------- invites: the same rules in every Grudge Match game (docs/gm-invites.md) ----------
+  // invite {t:'invite',v:2,id,to,game,gameName,code,url}: shown in whatever Grudge Match game the friend has open.
+  // reply {t:'invite-reply',v:2,id,to,game,answer:'now'|'later'|'no'}: goes back to the game that sent the invite.
+  const GM_URL=/^https:\/\/([a-z0-9-]+\.)?grudgematchgames\.com(\/[^\s"'<>]*)?$/i, SEND_AGAIN_MS=30000;
+  const inv=new Map();   // friend id -> {iid, code, st:'sent'|'now'|'later'|'no', at}
+  let later=null, laterT=null;
+  let go=u=>location.assign(u);
   function onMsg(m){
     if(!user||m.to!==user.id||!isFriend(m.from)) return;   // only friends can reach you
-    if((m.game||GM.app)!==GM.app) return;                    // another game's invite isn't for this page
-    if(m.t==='invite'&&okCode(m.code)) showInvite(m);
-    else if(m.t==='ask'){ const s=myState(); if(s.st==='room'&&s.code) send({t:'code',to:m.from,code:s.code}) }
-    else if(m.t==='code'&&okCode(m.code)&&wantCode===m.from){ wantCode=null; clearTimeout(askT); close(); joinByCode(String(m.code)) }
+    if(m.t==='invite-reply'){ if(m.game===GM.app) onReply(m); return }
+    if(m.t==='invite'){ const foreign=(m.game||GM.app)!==GM.app;
+      if(foreign?GM_URL.test(String(m.url||'')):okCode(m.code)) showInvite(m); return }
+    if((m.game||GM.app)!==GM.app) return;
+    if(m.t==='ask'){ const s=myState(); if(s.st==='room'&&s.code) send({t:'code',to:m.from,code:s.code}) }
+    else if(m.t==='code'&&okCode(m.code)&&wantCode===m.from){ wantCode=null; clearTimeout(askT); close(); enter(String(m.code)) }
   }
   function joinFriend(id){
     if(myState().st==='playing'){ msg='Finish your game first.'; draw(); return }
     wantCode=id; send({t:'ask',to:id}); msg='Asking for their game…'; draw();
     clearTimeout(askT); askT=setTimeout(()=>{ if(wantCode===id){ wantCode=null; msg='They didn’t answer. They may have just started or left their game.'; draw() } },5000);
   }
-  function invite(id){ const s=myState(); if(s.st!=='room'||!s.code) return; send({t:'invite',to:id,code:s.code}); sent.add(id); msg=`Invite sent to ${nameOf(id)}.`; draw() }
+  function invite(id,quiet){
+    const s=myState(); if(s.st!=='room'||!s.code) return;
+    const iid=Math.random().toString(36).slice(2,10);
+    send({t:'invite',v:2,id:iid,to:id,code:s.code,gameName:'Fliptide',url:'https://fliptide.grudgematchgames.com/?join='+encodeURIComponent(s.code)});
+    inv.set(id,{iid,code:s.code,st:'sent',at:Date.now()}); if(!quiet){ msg=`Invite sent to ${nameOf(id)}.`; draw() }
+  }
+  const invOf=id=>{ const x=inv.get(id), s=myState(); return x&&x.code===s.code?x:null };
+  // the host hears back: on the way now, coming after their current game, or not this time
+  function onReply(m){
+    const x=inv.get(m.from); if(!x||(m.id&&x.iid!==m.id)) return;
+    x.st=['now','later','no'].includes(m.answer)?m.answer:x.st; x.at=Date.now();
+    const n=esc(nameOf(m.from));
+    note(x.st==='now'?`<b>${n}</b> accepted your invite and is on the way.`:x.st==='later'?`<b>${n}</b> accepted your invite. They’ll join as soon as their current game ends.`:`<b>${n}</b> can’t join right now.`,m.from);
+    draw();
+  }
+  function toastEl(id,cls){ let t=document.getElementById(id); if(!t){ t=document.createElement('div'); t.id=id; t.className='gmtoast'+(cls?' '+cls:''); document.body.appendChild(t) } return t }
+  function note(html,from){ const t=toastEl('gmNote','top'); t.innerHTML=`${from?picHTML(from):''}<p>${html}</p><button class="btn small ghost" data-x>OK</button>`; t.hidden=false;
+    t.querySelector('[data-x]').onclick=()=>{ t.hidden=true }; clearTimeout(note.t); note.t=setTimeout(()=>{ t.hidden=true },9000); try{ sfx('chime') }catch(e){} }
+  // join a Fliptide game by code, leaving whatever is on screen (a game in progress stays saved on this device)
+  function enter(code){ close(); if(S&&S.screen==='play'){ const u=new URL(location.href); u.search='?join='+encodeURIComponent(code); go(u.href) } else joinByCode(code) }
+  function goTo(m){ if((m.game||GM.app)!==GM.app) go(m.url); else enter(String(m.code)) }
+  function reply(m,answer){ send({t:'invite-reply',v:2,id:m.id,to:m.from,game:m.game||GM.app,answer}) }
   function showInvite(m){
-    const s=myState(); if(s.code===String(m.code)) return;
-    if(s.st==='playing'){ pendingInvite=m; return }
-    let t=document.getElementById('gmToast'); if(!t){ t=document.createElement('div'); t.id='gmToast'; t.className='gmtoast'; document.body.appendChild(t) }
-    t.innerHTML=`${picHTML(m.from)}<p><b>${esc(nameOf(m.from)||m.name)}</b> invited you to their Fliptide game</p><button class="btn small primary" id="gmJoin">Join</button><button class="btn small ghost" id="gmNo">Not now</button>`;
-    t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{ t.hidden=true },25000); try{ sfx('chime') }catch(e){}
-    t.querySelector('#gmJoin').onclick=()=>{ t.hidden=true; close(); if(S&&S.screen==='play'&&!S.net) S.screen='setup'; joinByCode(String(m.code)) };
-    t.querySelector('#gmNo').onclick=()=>{ t.hidden=true };
+    const s=myState(), foreign=(m.game||GM.app)!==GM.app;
+    if(!foreign&&s.code===String(m.code)) return;
+    const busyNow=s.st==='playing', g=foreign?(m.gameName||gameName(m.game)):'Fliptide';
+    const t=toastEl('gmToast');
+    t.innerHTML=`${picHTML(m.from)}<p><b>${esc(nameOf(m.from)||m.name)}</b> invited you to ${foreign?`play <b>${esc(g)}</b>`:'their Fliptide game'}</p>
+      <div class="gmtbtns"><button class="btn small primary" data-a="now">${busyNow?'Accept and join now':'Accept and join'}</button>${busyNow?'<button class="btn small" data-a="later">Join after this game</button>':''}<button class="btn small ghost" data-a="no">Not now</button></div>`;
+    t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{ t.hidden=true },60000); try{ sfx('chime') }catch(e){}
+    t.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ t.hidden=true; const a=b.dataset.a; reply(m,a);
+      if(a==='now') goTo(m); else if(a==='later') waitThenJoin(m) });
+  }
+  // "Join after this game": a reminder stays up, and the moment this game ends you're taken to theirs
+  function waitThenJoin(m){
+    later=m; const t=toastEl('gmLater','top'), g=(m.game||GM.app)!==GM.app?(m.gameName||gameName(m.game)):'Fliptide';
+    t.innerHTML=`${picHTML(m.from)}<p>You’ll join <b>${esc(nameOf(m.from)||m.name)}</b>’s ${esc(g)} game when this one ends.</p><button class="btn small ghost" data-x>Cancel</button>`;
+    t.hidden=false; t.querySelector('[data-x]').onclick=()=>{ t.hidden=true; reply(m,'no'); later=null };
+  }
+  function laterCheck(){
+    if(!later||myState().st==='playing'||laterT) return;
+    const m=later, t=document.getElementById('gmLater'); let n=4;
+    const tick=()=>{ if(!later){ laterT=null; return } if(n<=0){ laterT=null; later=null; if(t) t.hidden=true; goTo(m); return }
+      if(t){ t.innerHTML=`${picHTML(m.from)}<p>Joining <b>${esc(nameOf(m.from)||m.name)}</b>’s game in ${n}…</p><button class="btn small ghost" data-x>Stay here</button>`; t.hidden=false;
+        t.querySelector('[data-x]').onclick=()=>{ clearTimeout(laterT); laterT=null; t.hidden=true; reply(m,'no'); later=null } }
+      n--; laterT=setTimeout(tick,1000) };
+    tick();
   }
 
   // ---------- the profile sheet ----------
@@ -3910,7 +3963,7 @@ const SOC=(()=>{
     let body;
     if(!ready&&sb===null&&connecting) body='<p class="muted">Loading…</p>';
     else if(!user) body=`
-      <p class="muted">Sign in with your <b>Grudge Match Games</b> account to get a Fliptide profile, add friends, see who's online and invite them to your game.</p>
+      <p class="muted">${view==='invite'?'Sign in with your <b>Grudge Match Games</b> account to invite your friends to this game.':'Sign in with your <b>Grudge Match Games</b> account to get a Fliptide profile, add friends, see who\'s online and invite them to your game.'}</p>
       <button class="btn gmoauth" data-oauth="google">${G_SVG}Continue with Google</button>
       <button class="btn gmoauth" data-oauth="facebook">${F_SVG}Continue with Facebook</button>
       <div class="gmor"><span>or with email</span></div>
@@ -3922,15 +3975,17 @@ const SOC=(()=>{
       </form>
       <button class="linkbtn" id="gmMode">${authMode==='up'?'Already have an account? Sign in':'New here? Create an account'}</button>`;
     else if(view==='me') body=meHTML();
+    else if(view==='invite') body=inviteHTML();
     else body=friendsHTML();
-    const L=user?lists():null, req=L?L.incoming.length:0;
+    const L=user?lists():null, req=L?L.incoming.length:0, inRoom=myState().st==='room';
+    if(view==='invite'&&!inRoom) view='friends';
     el.innerHTML=`<div class="sheet gmbox" role="dialog" aria-label="Profile and friends">
-      ${user?`<div class="lbtabs gmtabs" role="tablist"><button class="lbtab${view==='me'?' on':''}" data-gmtab="me">Profile</button><button class="lbtab${view==='friends'?' on':''}" data-gmtab="friends">Friends${req?` <i class="gmdot">${req}</i>`:''}</button></div>`:'<h2>Grudge Match Games account</h2>'}
+      ${user?`<div class="lbtabs gmtabs" role="tablist"><button class="lbtab${view==='me'?' on':''}" data-gmtab="me">Profile</button><button class="lbtab${view==='friends'?' on':''}" data-gmtab="friends">Friends${req?` <i class="gmdot">${req}</i>`:''}</button>${inRoom?`<button class="lbtab${view==='invite'?' on':''}" data-gmtab="invite">Invite</button>`:''}</div>`:'<h2>Grudge Match Games account</h2>'}
       <div class="gmbody">${body}</div>${msg?`<p class="gmmsg">${esc(msg)}</p>`:''}
       <div class="btnrow"><button class="btn ghost" id="gmClose">Close</button></div></div>`;
     const $=s=>el.querySelector(s), on=(attr,fn)=>el.querySelectorAll(`[${attr}]`).forEach(b=>b.onclick=()=>{ try{ sfx('tap') }catch(e){} fn(b.getAttribute(attr)) });
     $('#gmClose').onclick=close;
-    on('data-gmtab',t=>{ view=t; msg=''; picking=false; draw(); if(t==='friends') loadFriends() });
+    on('data-gmtab',t=>{ view=t; msg=''; picking=false; draw(); if(t!=='me') loadFriends() });
     if(!user){
       on('data-oauth',oauth);
       el.querySelectorAll('#gmName,#gmEmail').forEach(i=>i.oninput=()=>{ typed[i.id]=i.value });   // a wrong password keeps what was typed
@@ -3945,10 +4000,14 @@ const SOC=(()=>{
       const ni=$('#gmMyName'); if(ni) ni.onchange=()=>{ const n=cleanName(ni.value).slice(0,16); if(!n||isDefaultName(n)){ ni.value=prof.display_name||''; return } const old=prof.display_name; saveProfile({display_name:n});
         if(S&&S.screen==='setup'){ const st=S.setup, i=st.kinds.indexOf('human'); if(i>=0&&(st.names[i]===old||isDefaultName(st.names[i]))){ st.names[i]=n; save(); render() } } setMyName(n); if(prof.avatar) rememberAv(n,avKey(prof.avatar)) };
       $('#gmOut').onclick=signOut;
+    } else if(view==='invite'){
+      on('data-inv',id=>invite(id));
+      on('data-invall',()=>{ const L=lists(), f=L.friends.filter(x=>pres.has(x.id)&&!invOf(x.id)); f.forEach(x=>invite(x.id,true)); msg=`Invites sent to ${f.length} friends.`; draw() });
+      clearTimeout(draw.t); if([...inv.values()].some(v=>v.st==='sent'||v.st==='no')) draw.t=setTimeout(draw,SEND_AGAIN_MS/3);
     } else {
       const fs=$('#gmSearch'); let t=null; fs.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>search(fs.value),250) };
       if(keep){ fs.focus(); try{ fs.setSelectionRange(caret,caret) }catch(e){} }
-      on('data-add',request); on('data-acc',request); on('data-accrow',accept); on('data-drop',drop); on('data-inv',invite); on('data-join',joinFriend);
+      on('data-add',request); on('data-acc',request); on('data-accrow',accept); on('data-drop',drop); on('data-join',joinFriend);
       on('data-unf',id=>{ if(confirm(`Remove ${nameOf(id)} from your friends?`)) drop(id) });
     }
   }
@@ -3975,14 +4034,35 @@ const SOC=(()=>{
         return row(p.id,a,p.username?`<small>@${esc(p.username)}</small>`:'') }).join(''):'<li class="muted">Nobody by that name yet.</li>'}</ul>`:''}
       ${L.incoming.length?`<span class="label">Friend requests</span><ul class="gmlist">${L.incoming.map(x=>row(x.id,`<button class="btn small primary" data-accrow="${esc(x.r.id)}">Accept</button><button class="btn small ghost" data-drop="${esc(x.id)}">Decline</button>`,'<small>wants to be friends</small>')).join('')}</ul>`:''}
       <span class="label">Friends${L.friends.length?` · ${L.friends.filter(x=>x.s.rank>=2).length} online`:''}</span>
-      ${inRoom?'<p class="muted st-small">You’re in a game lobby: tap Invite to call a friend in.</p>':''}
+      ${inRoom?'<button class="btn primary" data-gmtab="invite">Invite friends to this game</button>':''}
       <ul class="gmlist">${L.friends.length?L.friends.map(x=>{ let a='';
-        if(inRoom&&x.s.ft) a=sent.has(x.id)?'<span class="gmtag">Invited</span>':`<button class="btn small primary" data-inv="${esc(x.id)}">Invite</button>`;
-        else if(x.s.join&&!inRoom) a=`<button class="btn small primary" data-join="${esc(x.id)}">Join</button>`;
+        if(x.s.join&&!inRoom) a=`<button class="btn small primary" data-join="${esc(x.id)}">Join</button>`;
         a+=`<button class="btn small ghost gmx" data-unf="${esc(x.id)}" aria-label="Remove ${esc(nameOf(x.id))}">✕</button>`;
         return row(x.id,a,stLine(x.s)) }).join(''):`<li class="muted">No friends yet. Search for someone above, or share your username${acct&&acct.username?': <b>'+esc(acct.username)+'</b>':''}.</li>`}</ul>
       ${L.outgoing.length?`<span class="label">Sent requests</span><ul class="gmlist">${L.outgoing.map(x=>row(x.id,`<button class="btn small ghost" data-drop="${esc(x.id)}">Cancel</button>`,'<small>waiting for them</small>')).join('')}</ul>`:''}`;
   }
+  // Invite friends: every friend with one button. Anyone online in a Grudge Match game can be invited; offline friends are listed without one.
+  function inviteHTML(){
+    const s=myState(), L=lists();
+    if(s.st!=='room'||!s.code) return '<p class="muted">Open an online game first, then invite friends from its lobby.</p>';
+    const row=(id,actions,line)=>`<li class="gmrow">${picHTML(id)}<span class="gmname"><b>${esc(nameOf(id))}</b>${line||''}</span><span class="gmact">${actions}</span></li>`;
+    const reach=x=>pres.has(x.id), now=Date.now();
+    const act=x=>{ if(!reach(x)) return '';
+      const v=invOf(x.id); if(!v) return `<button class="btn small primary" data-inv="${esc(x.id)}">Invite</button>`;
+      if(v.st==='now') return '<span class="gmtag ok">On the way</span>';
+      if(v.st==='later') return '<span class="gmtag ok">After their game</span>';
+      const again=now-v.at>SEND_AGAIN_MS?`<button class="btn small ghost" data-inv="${esc(x.id)}">Again</button>`:'';
+      return `<span class="gmtag">${v.st==='no'?'Not now':'Invited ✓'}</span>${again}` };
+    const line=x=>{ const v=invOf(x.id), st=x.s;
+      const t=v&&v.st==='later'?'Accepted · joins when their game ends':v&&v.st==='now'?'Accepted · joining now':!reach(x)&&st.rank>=2?st.text+' · can’t get invites there yet':st.text;
+      return `<small><i class="gmst ${st.dot}"></i>${esc(t)}</small>` };
+    const list=[...L.friends].sort((a,b)=>(reach(b)-reach(a))||b.s.rank-a.s.rank||nameOf(a.id).localeCompare(nameOf(b.id)));
+    const fresh=list.filter(x=>reach(x)&&!invOf(x.id));
+    return `<div class="gminvhead"><p class="muted">Game code <b>${esc(s.code.toUpperCase())}</b>. Friends playing another Grudge Match game get the invite there.</p>
+      ${fresh.length>1?`<button class="btn small primary" data-invall>Invite all ${fresh.length}</button>`:''}</div>
+      <ul class="gmlist">${list.length?list.map(x=>row(x.id,act(x),line(x))).join(''):'<li class="muted">No friends yet. Add some from the Friends tab.</li>'}</ul>`;
+  }
+  function openInvite(){ open('invite') }
   // the round profile button next to the other header bubbles: your picture once signed in, plus a count of requests or friends online
   function btnHTML(){
     if(!enabled) return '';
@@ -4001,7 +4081,7 @@ const SOC=(()=>{
     return ids.map(id=>{ const f=id===user.id?prof:fprofs.get(id), st=f&&f.stats||{}; return {id,name:nameOf(id)+(id===user.id?' (you)':''),av:avKey(f&&f.avatar),score:st.best||0,ts:st.last||0,games:st.games||0} })
       .filter(e=>e.games).sort((a,b)=>b.score-a.score||a.ts-b.ts).slice(0,10);
   }
-  return {enabled,init,open,close,wire,btnHTML,badge,recordGame,fromGame,board,get user(){ return user },get prof(){ return prof },_lists:()=>user?lists():null};
+  return {enabled,init,open,openInvite,close,set _go(f){ go=f },wire,btnHTML,badge,recordGame,fromGame,board,get user(){ return user },get prof(){ return prof },_lists:()=>user?lists():null};
 })();
 function start(d){
   try{ applyAccess() }catch(e){}
