@@ -106,6 +106,7 @@ p{margin:0}
 .whoav{width:84px;height:84px;object-fit:contain;margin:4px auto -4px;display:block;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
 .rowav{width:26px;height:26px;border-radius:50%;object-fit:contain;padding:2px;box-sizing:border-box;flex:none}
 .lbav{display:inline-block;width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:8px;flex:none}
+.seatav{width:28px;height:28px;border-radius:50%;object-fit:contain;flex:none}
 .lbav.none{border-radius:50%;background:color-mix(in srgb,var(--ink,#fff) 12%,transparent);width:22px;height:22px;margin:0 11px 0 3px}
 /* Grudge Match profile and friends */
 .gmbtn{position:relative}
@@ -593,6 +594,7 @@ html,body{overflow-x:clip}
 .bar .msg span{font-size:.9rem;line-height:1.3;color:var(--ink-2)}
 .bar .mini{grid-area:face;width:56px;height:56px}
 .bar .mini .face{width:100%;height:100%}
+.bar .mini .cardback{width:100%;height:100%}
 .bar .avatar{border-radius:50%;background:var(--c);color:#1a120d;display:grid;place-items:center;font-family:var(--display);font-size:1.6rem;box-shadow:0 3px 8px rgba(0,0,0,.4)}
 .bar .avatar.think{animation:think 1.2s ease-in-out infinite}
 @keyframes think{50%{transform:scale(.9);opacity:.75}}
@@ -767,7 +769,7 @@ const MSG_DEFAULTS={
   maskTitle:'Snorkel mask', maskMine:'{banked}Look away, others! {name}, peek at {tokens}.', maskWatch:'{banked}{name} is secretly peeking at {tokens}.',
   peekMore:'Tap {more} to peek at.', peekMoreWatch:'{name} has {peeks} left.',
   hookTitle:'Cast the hook', hookMine:'{banked}Tap a face-down token to hook it, then keep or discard it.', hookWatch:'{banked}{name} is choosing a token to hook.',
-  hookedTitle:'Hooked: {token}', hookedBody:'Keep it in your hand, or discard it?', hookedBackBody:'Put it back where it was, or discard it?', hookedWatch:'{name} is deciding whether to keep it.',
+  hookedTitle:'Hooked: {token}', hookedTitleWatch:'A hooked token', hookedBody:'Keep it in your hand, or discard it?', hookedBackBody:'Put it back where it was, or discard it?', hookedWatch:'{name} is deciding whether to keep it.',
   subTitle:'Submarine!', subMine:'{banked}Tap {tokens} to show everyone.', subWatch:'{banked}{name} will show everyone {tokens}.',
   subMore:'Tap {more} to show everyone.', subMoreWatch:'{name} is showing everyone {more}.',
   lookTitle:'Everyone, memorize these', lookBody:'They flip back face down when you continue.',
@@ -778,7 +780,7 @@ const MSG_DEFAULTS={
   sumBanked:'{name} banked {points}.', sumAction:'{name} {banked}.', sumStung:'{name} got stung by a jellyfish.',
   sumShark:'Shark! {name} lost {tokens} to the table, and the reef scattered.', sumSharkEmpty:'Shark! The whole reef scattered to new spots.',
   sumSharkLast:'The shark got {name} on the last flip.', sumWhirl:'{name} lost the catch to the whirlpool, and the reef swirled.',
-  sumHook:'{name} {banked} and hooked a {token} off the table.', sumHookKeep:'{name} {banked} and hooked a {token} into their hand.', sumHookBack:'{name} {banked}, hooked the {token} and put it back.', hookKeep:'Keep it', hookBack:'Put it back', hookDiscard:'Discard', sumSub:'{name} {banked} and sent out a submarine.', sumPeek:'{name} {banked} and secretly peeked at {tokens}.',
+  sumHook:'{name} {banked} and hooked a token off the table.', sumHookKeep:'{name} {banked} and hooked a token into their hand.', sumHookBack:'{name} {banked}, hooked a token and put it back.', hookKeep:'Keep it', hookBack:'Put it back', hookDiscard:'Discard', sumSub:'{name} {banked} and sent out a submarine.', sumPeek:'{name} {banked} and secretly peeked at {tokens}.',
   sumDolphin:'{name} {banked} and hid the dolphin.', sumDolphinPlus:'{name} {banked} and hid the dolphin with {tokens} from scrap.',
   endCatch:'{name} banked {points} on the last flip.', endAction:'{name} flipped the {token} with only 3 tokens left, so the game ended before it could be used.',
   onlyYou:'Only {name} should see this', peekCount:'Peek {i} of {n}. Remember where it was.', peekAgain:'Hide it and peek again', peekDone:'Hide it and end turn',
@@ -1297,23 +1299,25 @@ async function bankFlights(){
   return pts;
 }
 // Lift a token off the table into the card at the bottom of the screen.
+// a secret card (the hooked token) shows its face only to the player whose turn it is
+const cardUp = () => !(S.card&&S.card.secret)||mine(S.cur);
 async function toCard(i,card){
   const s=S.slots[i], from=centerOf(tokEl(i));
   S.card=card; cardHidden=true; away.add(s.id); render();
-  await fly(from,centerOf(cardFace()),{t:s.t,up:true,dur:620});
+  await fly(from,centerOf(cardFace()),{t:s.t,up:cardUp(),dur:620});
   cardHidden=false; render();
 }
 // Send the token in the card to the scrap pile.
 async function cardToScrap(i){
   const s=S.slots[i], from=centerOf(cardFace()); cardHidden=true; render();
-  await fly(from,centerOf(pileEl()),{t:s.t,up:true,upEnd:false,dur:650});
+  await fly(from,centerOf(pileEl()),{t:s.t,up:cardUp(),upEnd:false,dur:650});
   sfx('thud'); S.scrap.push(s.t); scrapSeen(s.t); away.delete(s.id); S.slots[i]=null; forget(i); S.turn.rev=S.turn.rev.filter(j=>j!==i);
   if(S.turn.act===i) S.turn.act=null;
   cardHidden=false; render();
 }
 async function cardToSpot(i){
   const s=S.slots[i], from=centerOf(cardFace()); cardHidden=true; render();
-  await fly(from,spotCenter(i),{t:s.t,up:true,dur:600});
+  await fly(from,spotCenter(i),{t:s.t,up:cardUp(),upEnd:false,dur:600});
   away.delete(s.id); S.card=null; cardHidden=false; render();
 }
 async function flipDownAll(){ if(S.slots.some(s=>s&&s.up)){ S.slots.forEach(s=>{if(s) s.up=false}); render(); await wait(480) } }
@@ -1712,7 +1716,8 @@ function hostOnPeers(){
     if(!Number.isInteger(s)||g.kinds[s]!=='remote') continue;
     const holder=g.seats[s];
     // a seated player renaming themselves while waiting
-    if(holder===p.peer){ const nm=cleanName(pr.name); if(nm&&g.st==='wait'&&nm!==g.names[s]){ g.names[s]=nm; changed=true } continue }
+    if(holder===p.peer){ const nm=cleanName(pr.name); if(nm&&g.st==='wait'&&nm!==g.names[s]){ g.names[s]=nm; changed=true }
+      if(pr.av!==undefined&&g.st==='wait'){ const av=pr.av&&avOk(pr.av)?pr.av:''; g.avs=g.avs||[]; if((g.avs[s]||'')!==av){ g.avs[s]=av; changed=true } } continue }
     if((holder&&here.has(holder))||Object.values(g.seats).includes(p.peer)) continue;
     g.seats[s]=p.peer; g.names[s]=cleanName(pr.name)||g.names[s]; if(pr.av&&avOk(pr.av)){ g.avs=g.avs||[]; g.avs[s]=pr.av }
     if(S.players&&S.players[s]) S.players[s].name=g.names[s];
@@ -1855,7 +1860,7 @@ function renderWait(){
       <div class="card">
         <div id="waitHead"></div>
         ${SOC.enabled?'<button class="btn gminvite" id="gmInviteBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 19c.7-3.4 3.2-5.3 6.2-5.3s5.5 1.9 6.2 5.3"/><path d="M18 8v6M15 11h6"/></svg>Invite friends</button>':''}
-        ${host?'':`<label class="name"><i style="background:var(--sea)"></i><input id="myName" maxlength="16" value="${esc(NET.myName)}" aria-label="Your name"></label>`}
+        ${host?'':`<div class="name"><button type="button" class="avbtn${myAvatar()?' has-av':''}" id="myAv" style="--c:var(--sea)" aria-label="Choose your sea creature" title="Choose your sea creature">${myAvatar()?`<img src="${avSrc(myAvatar())}" alt="">`:'<span>＋</span>'}</button><input id="myName" maxlength="16" value="${esc(NET.myName)}" aria-label="Your name"></div>`}
         <div class="seats" id="waitSeats"></div>
         <div class="btnrow" id="waitBtns"></div>
       </div>
@@ -1863,6 +1868,10 @@ function renderWait(){
     bindToggles(app); SOC.wire(app); { const ib=app.querySelector('#gmInviteBtn'); if(ib) ib.onclick=()=>{ sfx('tap'); SOC.openInvite() } }
     const mn=app.querySelector('#myName'); if(mn) mn.oninput=()=>{ NET.myName=cleanName(mn.value); setMyName(NET.myName);
       clearTimeout(NET.nameT); NET.nameT=setTimeout(()=>{ if(NET.room&&NET.myName) NET.room.presence({name:NET.myName}).catch(()=>{}) },400) };
+    const ma=app.querySelector('#myAv'); if(ma) ma.onclick=()=>{ sfx('tap'); avatarPicker(NET.myName||'You',myAvatar(),TX('avNone'),k=>{
+      setMyAvatar(k||''); if(NET.myName) rememberAv(NET.myName,k||''); if(k) SOC.fromGame(k);
+      ma.classList.toggle('has-av',!!k); ma.innerHTML=k?`<img src="${avSrc(k)}" alt="">`:'<span>＋</span>';
+      if(NET.room) NET.room.presence({av:k||''}).catch(()=>{}) }) };
   }
   const head=app.querySelector('#waitHead'), seats=app.querySelector('#waitSeats'), btns=app.querySelector('#waitBtns');
   if(!g){
@@ -1882,7 +1891,8 @@ function renderWait(){
       const k=g.kinds[i], held=g.seats[i]&&here.has(g.seats[i]), you=g.seats[i]===NET.me;
       const status=k==='remote'?(you?'You':held?'Joined':'Open seat'):AI[k]?`AI · ${AI[k].label}`:`With ${esc(hostName(g))}`;
       const canSit=!host&&mine==null&&k==='remote'&&!held;
-      return `<div class="seat"><i style="background:${COLORS[i]}"></i><b>${esc(n)}</b><small>${status}</small>${canSit?`<button class="btn primary small" data-sit="${i}">Sit here</button>`:''}</div>`;
+      const av=g.avs&&g.avs[i]&&avOk(g.avs[i])?g.avs[i]:'';
+      return `<div class="seat">${av?`<img class="seatav" src="${avSrc(av)}" alt="" style="background:${COLORS[i]}">`:`<i style="background:${COLORS[i]}"></i>`}<b>${esc(n)}</b><small>${status}</small>${canSit?`<button class="btn primary small" data-sit="${i}">Sit here</button>`:''}</div>`;
     }).join('');
     btns.innerHTML=host
       ? `<button class="btn primary" id="startOnline" ${allIn?'':'disabled'}>${allIn?TX('startGame'):'Waiting for players…'}</button><button class="btn ghost" id="leaveWait">Cancel</button>`
@@ -1917,7 +1927,7 @@ const MSG_LABELS={turnTitle:'Card title: whose turn',statusFlip:'Card: start of 
   extraTitle:'Sea Turtle card title',extraBody:'Sea Turtle card',whirlTitle:'Whirlpool card title',whirlBody:'Whirlpool card',dolphinTitle:'Dolphin card title',dolphinMine:'Dolphin card (your turn)',
   dolphinEmpty:'Dolphin card (empty scrap pile)',dolphinWatch:'Dolphin card (watching)',dolphinPlace:'Dolphin: choosing hiding spots',dolphinDone:'Dolphin: all spots chosen',maskTitle:'Snorkel mask card title',maskMine:'Snorkel mask card (your turn)',
   maskWatch:'Snorkel mask card (watching)',peekMore:'Snorkel mask: more peeks',peekMoreWatch:'Snorkel mask: more peeks (watching)',hookTitle:'Hook card title',hookMine:'Hook card (your turn)',
-  hookWatch:'Hook card (watching)',hookedTitle:'Hooked card title',hookedBody:'Hooked card (fish, starfish or jellyfish)',hookedBackBody:'Hooked card (any other token)',hookedWatch:'Hooked card (watching)',subTitle:'Submarine card title',subMine:'Submarine card (your turn)',subWatch:'Submarine card (watching)',
+  hookWatch:'Hook card (watching)',hookedTitle:'Hooked card title',hookedTitleWatch:'Hooked card title (watching)',hookedBody:'Hooked card (fish, starfish or jellyfish)',hookedBackBody:'Hooked card (any other token)',hookedWatch:'Hooked card (watching)',subTitle:'Submarine card title',subMine:'Submarine card (your turn)',subWatch:'Submarine card (watching)',
   subMore:'Submarine: more to show',subMoreWatch:'Submarine: more to show (watching)',lookTitle:'Submarine: memorize card title',lookBody:'Submarine: memorize card',bustTitle:'Bust card title',
   jellyBody:'Jellyfish card',sharkBody:'Shark card',sharkEmpty:'Shark card (empty hand)',sharkLast:'Shark card (last flip)',sharkLastEmpty:'Shark card (last flip, empty hand)',lastFlip:'Last flip note',
   sumBanked:'Turn summary: banked',sumAction:'Turn summary: action used',sumStung:'Turn summary: jellyfish',sumShark:'Turn summary: shark',sumSharkEmpty:'Turn summary: shark (empty hand)',
@@ -2102,9 +2112,9 @@ function cardSample(slot){
     hooked:[tok('fish'),TT('hookedTitle',{token:TYPES.fish.name}),TT('hookedBody'),`<button class="btn ghost" tabindex="-1">${TX('hookDiscard')}</button>`+btn(TX('hookKeep'))],
     sub:[tok('g2'),TT('subTitle'),TT('subMine',{banked:b,name:who,tokens:'2 tokens'}),''],
     look:[av,TT('lookTitle'),TT('lookBody'),btn(TX('continue'))],
-    jelly:[tok('jelly'),TT('bustTitle',{token:TYPES.jelly.name}),TT('jellyBody',{name:who}),btn(TX('continue')),1],
+    jelly:[tok('jelly'),TT('bustTitle',{token:TYPES.jelly.name}),TT('jellyBody',{name:who}),'',1],
     shark:[tok('shark'),TT('bustTitle',{token:TYPES.shark.name}),TT('sharkBody',{lose:2,tokens:'4 tokens',name:who}),btn(TX('continue')),1],
-    last:[tok('jelly'),TT('bustTitle',{token:TYPES.jelly.name}),TT('jellyBody',{name:who})+' '+TT('lastFlip'),btn(TX('continue')),1]};
+    last:[tok('jelly'),TT('bustTitle',{token:TYPES.jelly.name}),TT('jellyBody',{name:who})+' '+TT('lastFlip'),'',1]};
   const [mini,title,sub,acts,bust]=S2[slot==='all'?'extra':slot];
   return {mini,title:fmt(title),sub:fmt(sub),acts,bust};
 }
@@ -2660,7 +2670,7 @@ async function hookKeep(){
   S.phase='anim';
   if(handable(s.t)){
     const from=centerOf(cardFace()), dot=chipTarget(); cardHidden=true; render();
-    await fly(from,{...dot,s:dot.s*1.3},{t:s.t,up:true,dur:650}); sfx('plip');
+    await fly(from,{...dot,s:dot.s*1.3},{t:s.t,up:cardUp(),dur:650}); sfx('plip');
     p.bank.push(s.t); away.delete(s.id); S.slots[i]=null; forget(i); S.turn.rev=S.turn.rev.filter(j=>j!==i);
     S.card=null; cardHidden=false; bump(S.cur); render(); await flipDownAll();
     return endTurn(TT('sumHookKeep',{name:p.name,banked:bankedNote(),token:name}));
@@ -2668,15 +2678,16 @@ async function hookKeep(){
   await cardToSpot(i); await flipDownAll();
   endTurn(TT('sumHookBack',{name:p.name,banked:bankedNote(),token:name}));
 }
+// The hooked token is secret: it comes up face down, only the player with the hook sees its face (on their own screen),
+// and it's kept, put back or discarded without anyone else seeing it.
 async function hookTap(i){
-  const s=S.slots[i];
-  {
-    sfx('hook'); s.up=true; S.turn.rev.push(i); seeAll(i); render(); await wait(480);
-    await cardToScrap(S.turn.act);
-    S.turn.pending={type:'hook',slot:i};
-    await toCard(i,{k:'hooked',t:s.t,title:TT('hookedTitle',{token:TYPES[s.t].name}),body:TT(!mine(S.cur)?'hookedWatch':handable(s.t)?'hookedBody':'hookedBackBody',{name:P().name})});
-    S.phase='card';
-  }
+  const s=S.slots[i], p=P(), me=mine(S.cur);
+  sfx('hook'); S.turn.rev.push(i);
+  if(isAI(p)){ S.tick++; p.mem[i]={t:s.t,tick:S.tick} }
+  await cardToScrap(S.turn.act);
+  S.turn.pending={type:'hook',slot:i};
+  await toCard(i,{k:'hooked',t:s.t,secret:true,title:me?TT('hookedTitle',{token:TYPES[s.t].name}):TT('hookedTitleWatch'),body:TT(!me?'hookedWatch':handable(s.t)?'hookedBody':'hookedBackBody',{name:p.name})});
+  S.phase='card';
 }
 async function goggleTap(i){
   const s=S.slots[i];
@@ -2732,6 +2743,7 @@ async function doFlip(i){
   const s=S.slots[i], T=TYPES[s.t], p=P();
   sfx('flip'); s.up=true; S.turn.rev.push(i); seeAll(i); S.summary=null; render();
   sfx(isFish(s.t)?'fish':T.kind==='catch'||T.kind==='bust'||s.t==='dolphin'?s.t:s.t==='extra'?'extra':'chime');
+  if(s.t==='jelly'){ await wait(250); return jellyStings(i) }
   await wait(500);
   // the game ends once only 3 face-down tokens are left; a jellyfish, shark or whirlpool turns this turn's other tokens back over, so they still count
   // a shark or dolphin can put tokens back on the table, so it always plays out and the end of the turn decides whether the game is over
@@ -2781,6 +2793,24 @@ async function doFlip(i){
 }
 
 // Only 3 face-down tokens left: the game ends on this flip. A catch is banked, a jellyfish or shark still costs you, actions don't happen.
+// A jellyfish plays out on its own (no button): this turn's other tokens flip straight back over so nobody gets a long
+// look at them, the jellyfish shows on the card for a moment, then goes into the hand for −1.
+async function jellyStings(i){
+  const s=S.slots[i], p=P(), others=S.turn.rev.filter(j=>j!==i);
+  // the game ends once only 3 face-down tokens are left; the ones flipping back over still count
+  const last=faceDown().length+others.length<=3; if(last) S.final=true;
+  S.phase='anim';
+  let back=false; for(const j of others) if(S.slots[j]&&S.slots[j].up){ S.slots[j].up=false; back=true }
+  if(back){ render(); await wait(260) }
+  S.turn.pending={type:'jelly',slot:i};
+  await toCard(i,{k:last?'last':'jelly',t:'jelly',title:TT('bustTitle',{token:TYPES.jelly.name}),body:bustBody('jelly',last)+(last?' '+TT('lastFlip'):''),bust:true});
+  await wait(last?1300:850);
+  const from=centerOf(cardFace()), dot=chipTarget(); cardHidden=true; render();
+  await fly(from,{...dot,s:dot.s*1.3},{t:'jelly',up:true,dur:560}); sfx('thud');
+  p.bank.push('jelly'); away.delete(s.id); S.slots[i]=null; forget(i); S.card=null; cardHidden=false; bump(S.cur); render();
+  await flipDownAll();
+  endTurn(TT('sumStung',{name:p.name}));
+}
 async function lastFlip(i){
   const s=S.slots[i], T=TYPES[s.t], p=P(); S.final=true;
   if(T.kind==='bust'){
@@ -3169,16 +3199,21 @@ function playersCardHTML(st,kinds){ return `
       <button class="btn primary" id="start">${st.kinds.slice(0,st.count).includes('remote')?TX('openOnline'):TX('startGame')}</button>
     </div>` }
 // the sea-creature picker for one seat on the home screen
-function openAvatarPicker(i){
-  const st=S.setup, cur=st.avatars[i], el=document.createElement('div'); el.className='overlay avpick';
-  el.innerHTML=`<div class="sheet"><span class="label">${esc(st.names[i])}</span><h2>${TX('avPick')}</h2>
+// the creature grid; onPick(key) gets '' for "no creature", nothing when closed
+function avatarPicker(name,cur,noneLabel,onPick){
+  const el=document.createElement('div'); el.className='overlay avpick';
+  el.innerHTML=`<div class="sheet"><span class="label">${esc(name)}</span><h2>${TX('avPick')}</h2>
     <div class="avgrid">${Object.keys(AVATARS).map(k=>`<button class="avopt${k===cur?' on':''}" data-k="${k}" title="${esc(AV_LABELS[k])}" aria-label="${esc(AV_LABELS[k])}"><img src="${avSrc(k)}" alt=""></button>`).join('')}</div>
-    <div class="btnrow"><button class="btn ghost" data-k="">${TX(st.kinds[i]==='human'?'avNone':'avRandom')}</button><button class="btn" data-close>${TX('close')}</button></div></div>`;
-  const done=k=>{ el.remove(); if(k!==undefined){ st.avatars[i]=k||null; if(st.kinds[i]==='human') rememberAv(st.names[i],k||''); if(i===st.kinds.indexOf('human')){ setMyAvatar(k||''); if(k) SOC.fromGame(k) } save(); render() } };
+    <div class="btnrow"><button class="btn ghost" data-k="">${noneLabel}</button><button class="btn" data-close>${TX('close')}</button></div></div>`;
+  const done=k=>{ el.remove(); if(k!==undefined) onPick(k) };
   el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ sfx('tap'); done(b.dataset.k) });
   el.querySelector('[data-close]').onclick=()=>done();
   el.onclick=e=>{ if(e.target===el) done() };
   document.body.appendChild(el);
+}
+function openAvatarPicker(i){
+  const st=S.setup;
+  avatarPicker(st.names[i],st.avatars[i],TX(st.kinds[i]==='human'?'avNone':'avRandom'),k=>{ st.avatars[i]=k||null; if(st.kinds[i]==='human') rememberAv(st.names[i],k||''); if(i===st.kinds.indexOf('human')){ setMyAvatar(k||''); if(k) SOC.fromGame(k) } save(); render() });
 }
 function renderSetup(){
   bar.hidden=true; ov.hidden=true; boardEl=null;
@@ -3342,7 +3377,7 @@ function renderGame(){
   const p=P(), bot=isAI(p), me=mine(S.cur); let mini='',title='',sub='',acts='';
   const avatar=`<div class="mini avatar ${bot&&!busy?'think':''}${p.av?' has-av':''}" style="--c:${p.color}">${p.av?`<img src="${avSrc(p.av)}" alt="">`:bot?'AI':S.cur+1}</div>`;
   if(S.card){
-    mini=S.card.t?`<div class="mini ${cardHidden?'hide':''}" id="cardFace">${face(S.card.t)}</div>`:avatar;
+    mini=S.card.t?`<div class="mini ${cardHidden?'hide':''}" id="cardFace">${cardUp()?face(S.card.t):'<div class="st-back cardback"><span class="back"></span></div>'}</div>`:avatar;
     title=fmt(S.card.title); sub=fmt(S.card.body);
     if(S.phase==='dolphin'&&me&&DOL.confirmed){ const items=['dolphin',...DOL.picks.map(k=>S.scrap[k])], next=items[DOL.spots.length];
       sub=next?fmt(TT('dolphinPlace',{token:TYPES[next].name.toLowerCase(),step:items.length>1?` (${DOL.spots.length+1} of ${items.length})`:''})):fmt(TT('dolphinDone')) }
@@ -3661,7 +3696,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610241506;
+const BUILD=2610272354;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
