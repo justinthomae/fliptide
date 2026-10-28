@@ -236,6 +236,10 @@ p{margin:0}
 /* on small screens a token swells to double size as it flips face up, nudged inward so it stays on the table */
 .tok.swell{z-index:6;animation:tokSwell 1.5s cubic-bezier(.3,.8,.3,1) both}
 .tok.swell .front{filter:drop-shadow(0 10px 14px rgba(0,0,0,.45))}
+/* the hooked token waits in its spot: lifted with a gold ring while its player decides */
+.tok.hooked{z-index:5}
+.tok.hooked .inner{box-shadow:0 0 0 3px #f5c04a,0 10px 18px rgba(0,0,0,.4);border-radius:50%;transform:translateY(-4px)}
+.tok.hooked.up .inner{transform:translateY(-4px) rotateY(180deg)}
 @keyframes tokSwell{0%{transform:none}24%{transform:translate(var(--sx,0px),var(--sy,0px)) scale(2)}76%{transform:translate(var(--sx,0px),var(--sy,0px)) scale(2)}100%{transform:none}}
 .tok .inner,.fly .inner{position:absolute;inset:0;transform-style:preserve-3d}
 .tok .inner{transition:transform .42s cubic-bezier(.3,.7,.3,1.2)}
@@ -1308,8 +1312,9 @@ async function toCard(i,card){
   cardHidden=false; render();
 }
 // Send the token in the card to the scrap pile.
+const hookedHere = i => S.turn.hooked===i&&tokEl(i);
 async function cardToScrap(i){
-  const s=S.slots[i], from=centerOf(cardFace()); cardHidden=true; render();
+  const s=S.slots[i], from=centerOf(hookedHere(i)?tokEl(i):cardFace()); if(hookedHere(i)){ away.add(s.id); S.turn.hooked=null } cardHidden=true; render();
   await fly(from,centerOf(pileEl()),{t:s.t,up:cardUp(),upEnd:false,dur:650});
   sfx('thud'); S.scrap.push(s.t); scrapSeen(s.t); away.delete(s.id); S.slots[i]=null; forget(i); S.turn.rev=S.turn.rev.filter(j=>j!==i);
   if(S.turn.act===i) S.turn.act=null;
@@ -2669,13 +2674,15 @@ async function hookKeep(){
   const pd=S.turn.pending, i=pd.slot, s=S.slots[i], p=P(), name=TYPES[s.t].name.toLowerCase();
   S.phase='anim';
   if(handable(s.t)){
-    const from=centerOf(cardFace()), dot=chipTarget(); cardHidden=true; render();
+    const from=centerOf(hookedHere(i)?tokEl(i):cardFace()), dot=chipTarget(); if(hookedHere(i)){ away.add(s.id); S.turn.hooked=null } cardHidden=true; render();
     await fly(from,{...dot,s:dot.s*1.3},{t:s.t,up:cardUp(),dur:650}); sfx('plip');
     p.bank.push(s.t); away.delete(s.id); S.slots[i]=null; forget(i); S.turn.rev=S.turn.rev.filter(j=>j!==i);
     S.card=null; cardHidden=false; bump(S.cur); render(); await flipDownAll();
     return endTurn(TT('sumHookKeep',{name:p.name,banked:bankedNote(),token:name}));
   }
-  await cardToSpot(i); await flipDownAll();
+  // put back: it's already in its spot, so it just turns face down again
+  if(S.turn.hooked===i){ S.turn.hooked=null; S.card=null; render(); await wait(450) } else await cardToSpot(i);
+  await flipDownAll();
   endTurn(TT('sumHookBack',{name:p.name,banked:bankedNote(),token:name}));
 }
 // The hooked token is secret: it comes up face down, only the player with the hook sees its face (on their own screen),
@@ -2685,9 +2692,10 @@ async function hookTap(i){
   sfx('hook'); S.turn.rev.push(i);
   if(isAI(p)){ S.tick++; p.mem[i]={t:s.t,tick:S.tick} }
   await cardToScrap(S.turn.act);
-  S.turn.pending={type:'hook',slot:i};
-  await toCard(i,{k:'hooked',t:s.t,secret:true,title:me?TT('hookedTitle',{token:TYPES[s.t].name}):TT('hookedTitleWatch'),body:TT(!me?'hookedWatch':handable(s.t)?'hookedBody':'hookedBackBody',{name:p.name})});
-  S.phase='card';
+  // the hooked token stays in its spot, face up for the player with the hook (and big on a phone) until they decide
+  S.turn.pending={type:'hook',slot:i}; S.turn.hooked=i;
+  S.card={k:'hooked',t:s.t,secret:true,title:me?TT('hookedTitle',{token:TYPES[s.t].name}):TT('hookedTitleWatch'),body:TT(!me?'hookedWatch':handable(s.t)?'hookedBody':'hookedBackBody',{name:p.name})};
+  S.phase='card'; render();
 }
 async function goggleTap(i){
   const s=S.slots[i];
@@ -3303,14 +3311,16 @@ function renderBoard(){
     el.dataset.i=i;
     el.style.left=`${(sp.x-D/2)*100}%`; el.style.top=`${(sp.y-D/2)/S.h*100}%`; el.style.width=`${D*100}%`;
     el.style.setProperty('--r',sp.r+'deg');
-    if(s.up&&!el.classList.contains('up')&&swellOK()) swell(el,sp,D);
-    el.classList.toggle('up',s.up);
+    const hooked=S.turn.hooked===i, up=s.up||(hooked&&mine(S.cur));
+    if(up&&!el.classList.contains('up')&&swellOK()) swell(el,sp,D);
+    el.classList.toggle('up',up);
+    el.classList.toggle('hooked',hooked);
     el.classList.toggle('rev',s.up&&S.turn.rev.includes(i));
     el.classList.toggle('away',away.has(s.id));
     const canPick=!s.up&&pickable&&!(S.phase==='peek'&&(S.turn.peeked||[]).includes(i));
     el.classList.toggle('pick',canPick);
     el.disabled=!canPick;
-    el.setAttribute('aria-label',s.up?TYPES[s.t].name:'Face-down token');
+    el.setAttribute('aria-label',up?TYPES[s.t].name:hooked?'Hooked token':'Face-down token');
   });
   for(const [id,el] of tokMap) if(!live.has(id)){el.remove();tokMap.delete(id)}
   boardEl.querySelectorAll('.hide-spot').forEach(g=>g.remove());
@@ -3696,7 +3706,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610272354;
+const BUILD=2610280436;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
