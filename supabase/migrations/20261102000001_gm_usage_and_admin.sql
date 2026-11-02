@@ -1,0 +1,16 @@
+-- Usage stats and the admin dashboard (admin.html), shared by the Grudge Match games (rows are tagged with the game).
+-- Applied to the shared Supabase project (zhfkcjzajazsrpqeyaea) on 2026-11-02, as the migrations
+-- gm_usage_tables, gm_usage_write_functions, gm_admin_read_functions and gm_admin_player_functions.
+--
+-- Tables (RLS on, no direct access for anon or authenticated):
+--   gm_app_admins(user_id, app)  extra admins per game ('*' = every game); the account's app_metadata role 'admin' also counts
+--   gm_sessions                  one row per visit: device id, account (if signed in), platform, installed app, active seconds,
+--                                menu/lobby/playing and the current mode; last_seen_at drives "online now" (seen in the last 90s)
+--   gm_plays                     one row per game: mode (local / ai / online), AI levels, players, length, score, won
+-- Write functions (anon + authenticated): gm_session_ping, gm_play_log. They validate every field, cap added time at
+--   the time that really passed, and rate-limit (one ping per 8s per visit, 120 games an hour per device).
+-- Admin functions (authenticated; each checks gm_is_admin(app) and raises 'not allowed' otherwise):
+--   gm_admin_overview(app, days, tz)  KPIs with the previous period, per-day series, modes, hours, devices, top players
+--   gm_admin_live(app)                who is on right now
+--   gm_admin_players(app, q, limit, offset), gm_admin_player(app, user, tz), gm_admin_player_update(app, user, name, reset_avatar, reset_stats)
+-- The full SQL is in the project's migration history under those four names.

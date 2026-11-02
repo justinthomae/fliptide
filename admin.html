@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Fliptide Dashboard</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Fliptide admin dashboard: usage, players online, players, game modes, and links into Studio for every look-and-feel setting.
+   Dark only, like the game. Data comes from the gm_admin_* functions in the shared Supabase project; only admins get any. */
+:root{
+  color-scheme:dark;
+  --bg:#1d1612; --surface-1:#2b211b; --surface-2:#352a22; --line:#4a3c32; --grid:#3b2f27;
+  --text-primary:#f4ebde; --text-secondary:#c9b8a5; --text-muted:#9c8b79;
+  --accent:#6cc4b6; --accent-ink:#0e2724;
+  /* chart slots: validated on this surface (dataviz validate_palette --mode dark --surface #2b211b) */
+  --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500; --series-5:#d55181;
+  --good:#0ca30c; --critical:#d03b3b;
+  --display:'Gochi Hand','Comic Sans MS',cursive; --body:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text-primary);font:15px/1.45 var(--body)}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+header.top img{width:40px;height:40px;border-radius:10px}
+header.top h1{font:400 30px/1 var(--display);margin:0}
+header.top .who{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--text-secondary);font-size:14px}
+.btn{border:1.5px solid var(--line);background:var(--surface-2);border-radius:12px;padding:8px 14px;cursor:pointer;font-weight:700}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn.danger{border-color:#7a3a33;color:#f1b6ac}
+nav.tabs{display:flex;gap:4px;background:var(--surface-1);border-radius:14px;padding:4px;margin-bottom:16px;overflow-x:auto}
+nav.tabs button{flex:1 0 auto;border:0;background:transparent;border-radius:10px;padding:9px 14px;cursor:pointer;color:var(--text-secondary);font-weight:700;white-space:nowrap}
+nav.tabs button.on{background:var(--accent);color:var(--accent-ink)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filters{margin-bottom:14px}
+.seg{display:inline-flex;background:var(--surface-1);border-radius:12px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:9px;cursor:pointer;color:var(--text-secondary);font-weight:700}
+.seg button.on{background:var(--surface-2);color:var(--text-primary);box-shadow:inset 0 0 0 1.5px var(--line)}
+.muted{color:var(--text-muted)} .small{font-size:13px}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cols2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:var(--surface-1);border:1px solid var(--line);border-radius:18px;padding:16px;min-width:0}
+.card h2{font-size:15px;margin:0 0 2px;letter-spacing:.01em}
+.card .sub{margin:0 0 12px;color:var(--text-muted);font-size:13px}
+.kpi .label{color:var(--text-secondary);font-size:13px;font-weight:700}
+.kpi .val{font-size:30px;font-weight:700;line-height:1.15;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .delta{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.kpi .delta b{font-weight:700}
+.kpi.live .val{display:flex;align-items:center;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--good);display:inline-block;box-shadow:0 0 0 0 rgba(12,163,12,.6);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(12,163,12,0)}100%{box-shadow:0 0 0 0 rgba(12,163,12,0)}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+/* charts */
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .axis text{fill:var(--text-muted);font-size:11px}
+.chart .gridline{stroke:var(--grid);stroke-width:1}
+.tip{position:absolute;pointer-events:none;background:#120d0a;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12.5px;white-space:nowrap;transform:translate(-50%,calc(-100% - 10px));z-index:5}
+.tip b{display:block;font-size:13px}
+.tablebtn{border:0;background:none;color:var(--text-muted);cursor:pointer;font-size:12px;text-decoration:underline;padding:0;margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--grid);vertical-align:middle}
+th{color:var(--text-secondary);font-size:12px;font-weight:700;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(110px,34%) 1fr auto;gap:10px;align-items:center}
+.bar .name{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .track{display:block;height:14px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.bar .fill{display:block;height:100%;background:var(--series-1);border-radius:0 4px 4px 0}
+.bar .v{font-size:13px;color:var(--text-secondary);font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
+.av{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--surface-2);display:inline-grid;place-items:center;font-weight:700;font-size:13px;flex:none;vertical-align:middle}
+.who-cell{display:flex;align-items:center;gap:10px;min-width:0}
+.who-cell b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who-cell small{color:var(--text-muted)}
+.badge{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--line)}
+.badge.playing{color:#f5c04a;border-color:#6b5520} .badge.lobby{color:var(--accent);border-color:#2f5a53}
+.empty{padding:28px 10px;text-align:center;color:var(--text-muted)}
+.search{flex:1;min-width:200px;background:var(--surface-1);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px}
+/* player drawer */
+.drawer{position:fixed;inset:0;background:rgba(10,7,5,.6);display:flex;justify-content:flex-end;z-index:20}
+.drawer .panel{width:min(480px,100%);height:100%;overflow:auto;background:var(--surface-1);border-left:1px solid var(--line);padding:18px}
+.drawer .head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.drawer .head .av{width:56px;height:56px;font-size:22px}
+.drawer h2{font-size:16px;margin:16px 0 8px}
+.drawer label{display:block;font-size:12px;color:var(--text-secondary);font-weight:700;margin:12px 0 4px}
+.drawer input{width:100%;background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:9px 11px}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.statgrid div{background:var(--surface-2);border-radius:12px;padding:8px;text-align:center}
+.statgrid b{display:block;font-size:20px}.statgrid small{color:var(--text-muted)}
+/* customize */
+.cust{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.cust a{display:flex;gap:12px;align-items:flex-start;text-decoration:none;color:inherit;background:var(--surface-1);border:1px solid var(--line);border-radius:16px;padding:14px;transition:border-color .15s}
+.cust a:hover{border-color:var(--accent)}
+.cust .ic{width:38px;height:38px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;flex:none}
+.cust .ic svg{width:20px;height:20px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cust b{display:block;margin-bottom:2px;color:var(--text-primary);font-size:15px}.cust span span{font-size:13px;color:var(--text-muted)}
+/* sign-in */
+.gate{max-width:420px;margin:8vh auto;text-align:center}
+.gate form{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.gate input{background:var(--surface-1);border:1.5px solid var(--line);border-radius:12px;padding:11px 12px}
+.oauth{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff;color:#1f2330;border:0;border-radius:12px;padding:11px;font-weight:700;cursor:pointer}
+.msg{color:#f1b6ac;margin-top:10px;min-height:1.4em}
+@media (max-width:600px){ .kpi .val{font-size:24px} .hide-sm{display:none} .wrap{padding:12px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <img src="icon-192.png" alt="">
+    <div><h1>Fliptide Dashboard</h1><div class="muted small">Grudge Match Games · admin</div></div>
+    <div class="who" id="who" hidden></div>
+  </header>
+  <main id="main"><p class="muted">Loading…</p></main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+const APP='fliptide', TZ='America/Denver';
+const SB_URL='https://zhfkcjzajazsrpqeyaea.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoZmtjanphamF6c3JwcWV5YWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MjEyNzgsImV4cCI6MjA5NTM5NzI3OH0.hWqpo8HcGwaZGDa1tMvcpeShItQSDFYEl8cREfK_2EY';
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Number(n||0).toLocaleString();
+const PIC_RE=/^https:\/\/zhfkcjzajazsrpqeyaea\.supabase\.co\/storage\/v1\/object\/public\/uploads\/[0-9a-f-]{36}\/[A-Za-z0-9_./-]{1,120}$/;
+const picSrc=a=>!a?'':a.startsWith('av:')?`assets/av-${a.slice(3).replace(/[^a-z0-9_-]/g,'')}.webp`:PIC_RE.test(a)?a:'';
+const avHTML=(a,name)=>{ const s=picSrc(a); return s?`<img class="av" src="${esc(s)}" alt="">`:`<span class="av">${esc(String(name||'?').slice(0,1).toUpperCase())}</span>` };
+const mins=m=>{ m=Math.round(m||0); if(m<60) return m+' min'; const h=Math.floor(m/60); return h>=10?fmt(h)+' h':h+' h'+(m%60?' '+(m%60)+' min':'') };
+const ago=t=>{ if(!t) return '–'; const s=(Date.now()-new Date(t))/1000; if(s<90) return 'just now'; if(s<3600) return Math.round(s/60)+' min ago'; if(s<86400) return Math.round(s/3600)+' h ago'; return Math.round(s/86400)+' d ago' };
+const day=d=>new Date(d+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const LEVEL={easy:'Easy',medium:'Medium',hard:'Hard'};
+const modeName=(m,d)=>m==='local'?'Pass and play':m==='online'?'Online':m==='ai'?'vs AI'+(d?' · '+d.split('+').map(x=>LEVEL[x]||x).join(' & '):''):m;
+const MODE_ORDER=['local','ai','online'];
+
+let user=null, tab='overview', range=30, timer=null, playersQ='';
+
+// ---------- sign-in ----------
+async function boot(){
+  const {data}=await sb.auth.getSession(); user=data&&data.session&&data.session.user;
+  sb.auth.onAuthStateChange((ev,s)=>{ const u=s&&s.user; if((u&&u.id)!==(user&&user.id)){ user=u; route() } });
+  route();
+}
+async function route(){
+  clearInterval(timer);
+  if(!user) return gate();
+  const {data:ok,error}=await sb.rpc('gm_is_admin',{p_app:APP});
+  const who=$('#who'); who.hidden=false; who.innerHTML=`${esc(user.email||'')} <button class="btn small" id="out">Sign out</button>`;
+  $('#out').onclick=()=>sb.auth.signOut();
+  if(error||!ok){ $('#main').innerHTML=`<div class="gate card"><h2>Not an admin account</h2><p class="muted">${esc(user.email||'This account')} isn't set up as a Fliptide admin. Sign in with an admin account, or ask an admin to add this one.</p></div>`; return }
+  shell(); show(tab);
+}
+function gate(msg){
+  $('#who').hidden=true;
+  $('#main').innerHTML=`<div class="gate"><h2>Sign in</h2><p class="muted">Use your Grudge Match Games admin account.</p>
+    <button class="oauth" id="google"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.2a5.3 5.3 0 0 1-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.5z"/><path fill="#34A853" d="M12 23.5c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.4 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3A11.5 11.5 0 0 0 12 23.5z"/><path fill="#FBBC05" d="M5.6 14.2a6.9 6.9 0 0 1 0-4.4v-3H1.8a11.5 11.5 0 0 0 0 10.4z"/><path fill="#EA4335" d="M12 5.1c1.7 0 3.2.6 4.4 1.7l3.3-3.3A11.5 11.5 0 0 0 1.8 6.8l3.8 3C6.5 7.1 9 5.1 12 5.1z"/></svg>Continue with Google</button>
+    <form id="pw"><input id="em" type="email" placeholder="Email" autocomplete="email" required><input id="pwd" type="password" placeholder="Password" autocomplete="current-password" required><button class="btn primary" type="submit">Sign in</button></form>
+    <p class="msg" id="msg">${esc(msg||'')}</p></div>`;
+  $('#google').onclick=async()=>{ const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}}); if(error) $('#msg').textContent=error.message };
+  $('#pw').onsubmit=async e=>{ e.preventDefault(); $('#msg').textContent='';
+    const {error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pwd').value});
+    if(error) $('#msg').textContent=/invalid/i.test(error.message)?'That email and password don’t match an account.':error.message };
+}
+function shell(){
+  const T=[['overview','Overview'],['live','Online now'],['players','Players'],['modes','Game modes'],['customize','Customize']];
+  $('#main').innerHTML=`<nav class="tabs" role="tablist">${T.map(([k,l])=>`<button role="tab" data-tab="${k}">${l}</button>`).join('')}</nav><section id="view"></section>`;
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>show(b.dataset.tab));
+}
+function show(t){
+  tab=t; clearInterval(timer);
+  document.querySelectorAll('[data-tab]').forEach(b=>{ b.classList.toggle('on',b.dataset.tab===t); b.setAttribute('aria-selected',b.dataset.tab===t) });
+  try{ history.replaceState(null,'','#'+t) }catch(e){}
+  ({overview,live,players,modes,customize})[t]();
+}
+const rangeHTML=()=>`<div class="row filters"><div class="seg" role="group" aria-label="Time range">${[[7,'7 days'],[30,'30 days'],[90,'90 days']].map(([d,l])=>`<button data-range="${d}" class="${range===d?'on':''}">${l}</button>`).join('')}</div><span class="muted small">Days run on Mountain Time.</span></div>`;
+const wireRange=fn=>document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{ range=+b.dataset.range; fn() });
+async function call(fn,args){ const {data,error}=await sb.rpc(fn,args); if(error) throw error; return data }
+const fail=e=>{ $('#view').innerHTML=`<div class="card empty">Couldn’t load this: ${esc(e.message||e)}</div>` };
+
+// ---------- charts (plain SVG) ----------
+// a line + soft area for one measure over days, with a crosshair tooltip
+function lineChart(el,pts,opts){ el._draw=()=>lineChart(el,pts,opts); el.classList.add('chartbox'); const {label,unit='',color='var(--series-1)',fmtV=fmt}=opts;
+  const W=Math.max(260,el.clientWidth||640),H=Math.round(Math.min(220,Math.max(170,W*.42))),P={l:38,r:10,t:10,b:26}, n=pts.length, max=Math.max(1,...pts.map(p=>p.v));
+  const nice=v=>{ const p=10**Math.floor(Math.log10(v)), f=v/p; return (f<=1?1:f<=2?2:f<=5?5:10)*p }, top=nice(max);
+  const x=i=>P.l+(n<2?0:i*(W-P.l-P.r)/(n-1)), y=v=>P.t+(H-P.t-P.b)*(1-v/top);
+  const ticks=[0,top/2,top], line=pts.map((p,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
+  const every=Math.ceil(n/Math.max(3,Math.floor(W/90)));
+  el.innerHTML=`<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">
+    <g class="axis">${ticks.map(t=>`<line class="gridline" x1="${P.l}" x2="${W-P.r}" y1="${y(t)}" y2="${y(t)}"/><text x="${P.l-6}" y="${y(t)+4}" text-anchor="end">${fmtV(t)}</text>`).join('')}
+    ${pts.map((p,i)=>i%every===0||i===n-1?`<text x="${x(i)}" y="${H-6}" text-anchor="middle">${esc(day(p.d))}</text>`:'').join('')}</g>
+    <path d="${line}L${x(n-1)},${y(0)}L${x(0)},${y(0)}Z" fill="${color}" opacity=".14"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <g class="hov" hidden><line y1="${P.t}" y2="${H-P.b}" stroke="var(--text-muted)" stroke-dasharray="3 3"/><circle r="5" fill="${color}" stroke="var(--surface-1)" stroke-width="2"/></g>
+    <rect x="${P.l}" y="0" width="${W-P.l-P.r}" height="${H}" fill="transparent" class="hit"/></svg><div class="tip" hidden></div></div>
+    <button class="tablebtn">Show as a table</button><div class="tbl" hidden></div>`;
+  const svg=el.querySelector('svg'), hov=svg.querySelector('.hov'), tip=el.querySelector('.tip');
+  const move=ev=>{ const r=svg.getBoundingClientRect(), sx=(ev.clientX-r.left)*W/r.width, i=Math.max(0,Math.min(n-1,Math.round((sx-P.l)/((W-P.l-P.r)/Math.max(1,n-1)))));
+    hov.hidden=false; hov.querySelector('line').setAttribute('x1',x(i)); hov.querySelector('line').setAttribute('x2',x(i));
+    const c=hov.querySelector('circle'); c.setAttribute('cx',x(i)); c.setAttribute('cy',y(pts[i].v));
+    tip.hidden=false; tip.style.left=(x(i)*r.width/W)+'px'; tip.style.top=(y(pts[i].v)*r.height/H)+'px'; tip.innerHTML=`<b>${esc(day(pts[i].d))}</b>${fmtV(pts[i].v)}${unit}` };
+  const hit=svg.querySelector('.hit'); hit.addEventListener('pointermove',move); hit.addEventListener('pointerdown',move);
+  hit.addEventListener('pointerleave',()=>{ hov.hidden=true; tip.hidden=true });
+  el.querySelector('.tablebtn').onclick=()=>{ const t=el.querySelector('.tbl'); t.hidden=!t.hidden;
+    t.innerHTML=`<table><thead><tr><th>Day</th><th class="num">${esc(label)}</th></tr></thead><tbody>${pts.slice().reverse().map(p=>`<tr><td>${esc(day(p.d))}</td><td class="num">${fmtV(p.v)}${unit}</td></tr>`).join('')}</tbody></table>` };
+}
+// columns for the 24 hours of the day
+function hourChart(el,hours){ el._draw=()=>hourChart(el,hours); el.classList.add('chartbox');
+  const W=Math.max(260,el.clientWidth||640),H=180,P={l:30,r:6,t:8,b:24}, max=Math.max(1,...hours), bw=(W-P.l-P.r)/24;
+  const y=v=>P.t+(H-P.t-P.b)*(1-v/max), lab=h=>h===0?'12a':h<12?h+'a':h===12?'12p':(h-12)+'p';
+  el.innerHTML=`<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Visits by hour of day">
+    <g class="axis"><line class="gridline" x1="${P.l}" x2="${W-P.r}" y1="${y(0)}" y2="${y(0)}"/>${[0,6,12,18].map(h=>`<text x="${P.l+h*bw+bw/2}" y="${H-6}" text-anchor="middle">${lab(h)}</text>`).join('')}<text x="${P.l-6}" y="${y(max)+4}" text-anchor="end">${fmt(max)}</text></g>
+    ${hours.map((v,h)=>`<g class="col" data-h="${h}"><rect x="${P.l+h*bw}" y="${P.t}" width="${bw}" height="${H-P.t-P.b}" fill="transparent"/><rect x="${(P.l+h*bw+1.5).toFixed(1)}" y="${y(v).toFixed(1)}" width="${(bw-3).toFixed(1)}" height="${Math.max(0,y(0)-y(v)).toFixed(1)}" rx="3" fill="var(--series-1)"/></g>`).join('')}
+    </svg><div class="tip" hidden></div></div>`;
+  const svg=el.querySelector('svg'), tip=el.querySelector('.tip');
+  svg.querySelectorAll('.col').forEach(g=>g.addEventListener('pointerenter',()=>{ const h=+g.dataset.h, r=svg.getBoundingClientRect();
+    tip.hidden=false; tip.style.left=((P.l+h*bw+bw/2)*r.width/W)+'px'; tip.style.top=(y(hours[h])*r.height/H)+'px';
+    tip.innerHTML=`<b>${lab(h)}–${lab((h+1)%24)}</b>${fmt(hours[h])} visit${hours[h]===1?'':'s'}` }));
+  svg.addEventListener('pointerleave',()=>{ tip.hidden=true });
+}
+// labelled horizontal bars
+const barsHTML=(rows,{max,fmtV=fmt,color='var(--series-1)'})=>`<div class="bars">${rows.map(r=>`<div class="bar" title="${esc(r.name)}: ${esc(fmtV(r.v))}"><span class="name">${esc(r.name)}</span><span class="track"><span class="fill" style="width:${max?Math.max(1.5,r.v/max*100):0}%;background:${color}"></span></span><span class="v">${esc(fmtV(r.v))}</span></div>`).join('')}</div>`;
+const delta=(now,prev)=>{ if(!prev) return now?'<span class="muted">new this period</span>':'<span class="muted">no change</span>'; const p=Math.round((now-prev)/prev*100);
+  return `<b>${p>0?'▲ +':p<0?'▼ ':''}${p}%</b> vs the ${range} days before` };
+
+// ---------- overview ----------
+async function overview(){
+  const v=$('#view'); v.innerHTML=rangeHTML()+'<p class="muted">Loading…</p>'; wireRange(overview);
+  let o; try{ o=await call('gm_admin_overview',{p_app:APP,p_days:range,p_tz:TZ}) }catch(e){ return fail(e) }
+  const k=o.kpi, kp=o.kpi_prev, g=o.games;
+  v.innerHTML=rangeHTML()+`
+    <div class="grid kpis">
+      <div class="card kpi live"><div class="label">Online now</div><div class="val"><span class="dot" aria-hidden="true"></span>${fmt(o.online)}</div><div class="delta"><a href="#live" data-go="live">See who</a></div></div>
+      <div class="card kpi"><div class="label">Players</div><div class="val">${fmt(k.players)}</div><div class="delta">${delta(k.players,kp.players)}</div></div>
+      <div class="card kpi"><div class="label">Time played</div><div class="val">${mins(k.minutes)}</div><div class="delta">${delta(k.minutes,kp.minutes)}</div></div>
+      <div class="card kpi"><div class="label">Average visit</div><div class="val">${mins(k.avg_session_min)}</div><div class="delta">${fmt(k.sessions)} visits</div></div>
+      <div class="card kpi"><div class="label">Games played</div><div class="val">${fmt(g.started)}</div><div class="delta">${delta(g.started,o.games_prev)}</div></div>
+      <div class="card kpi"><div class="label">Accounts</div><div class="val">${fmt(o.accounts)}</div><div class="delta">${fmt(k.signed_in)} signed in this period</div></div>
+    </div>
+    <div class="grid cols2" style="margin-top:14px">
+      <div class="card"><h2>Players per day</h2><p class="sub">Different devices that opened Fliptide</p><div id="cPlayers"></div></div>
+      <div class="card"><h2>Time played per day</h2><p class="sub">Minutes someone was actually using the game</p><div id="cMinutes"></div></div>
+      <div class="card"><h2>Games per day</h2><p class="sub">Games started, all modes</p><div id="cGames"></div></div>
+      <div class="card"><h2>When people play</h2><p class="sub">Visits by hour of day, Mountain Time</p><div id="cHours"></div></div>
+      <div class="card"><h2>Most played modes</h2><p class="sub">Games started in the last ${range} days</p><div id="cModes"></div></div>
+      <div class="card"><h2>Devices</h2><p class="sub">Players on each kind of device, and how many installed the app</p><div id="cDev"></div></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h2>Most time played</h2><p class="sub">Top 10 in the last ${range} days</p><div id="cTop"></div></div>`;
+  v.querySelector('[data-go]').onclick=e=>{ e.preventDefault(); show('live') };
+  const D=o.daily||[];
+  lineChart($('#cPlayers'),D.map(d=>({d:d.day,v:d.players})),{label:'Players',color:'var(--series-1)'});
+  lineChart($('#cMinutes'),D.map(d=>({d:d.day,v:d.minutes})),{label:'Minutes',unit:' min',color:'var(--series-1)'});
+  lineChart($('#cGames'),D.map(d=>({d:d.day,v:d.games})),{label:'Games',color:'var(--series-1)'});
+  hourChart($('#cHours'),o.hours||Array(24).fill(0));
+  const byMode={}; (o.modes||[]).forEach(m=>{ byMode[m.mode]=(byMode[m.mode]||0)+m.n });
+  const mrows=Object.entries(byMode).sort((a,b)=>b[1]-a[1]).map(([m,n])=>({name:modeName(m),v:n}));
+  $('#cModes').innerHTML=mrows.length?barsHTML(mrows,{max:Math.max(...mrows.map(r=>r.v))})+`<p class="muted small"><a href="#modes" id="moreModes">More about modes</a></p>`:'<div class="empty">No games yet.</div>';
+  const mm=$('#moreModes'); if(mm) mm.onclick=e=>{ e.preventDefault(); show('modes') };
+  const P=o.platforms||[], PN={phone:'Phones',tablet:'Tablets',desktop:'Computers',other:'Other'};
+  $('#cDev').innerHTML=P.length?barsHTML(P.map(p=>({name:PN[p.platform]||p.platform,v:p.devices})),{max:Math.max(...P.map(p=>p.devices))})
+    +`<p class="muted small">${fmt(P.reduce((a,p)=>a+p.installed,0))} of ${fmt(P.reduce((a,p)=>a+p.devices,0))} play from the installed app.</p>`:'<div class="empty">No visits yet.</div>';
+  const top=o.top||[];
+  $('#cTop').innerHTML=top.length?`<table><thead><tr><th>Player</th><th class="num">Time played</th><th class="num hide-sm">Visits</th><th class="num">Last seen</th></tr></thead><tbody>${top.map(t=>`<tr${t.user_id?` class="click" data-user="${esc(t.user_id)}"`:''}><td><span class="who-cell">${avHTML(t.avatar,t.name)}<b>${esc(t.name)}</b></span></td><td class="num">${mins(t.minutes)}</td><td class="num hide-sm">${fmt(t.sessions)}</td><td class="num">${ago(t.last_seen)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No visits yet.</div>';
+  $('#cTop').querySelectorAll('[data-user]').forEach(r=>r.onclick=()=>playerDrawer(r.dataset.user));
+}
+
+// ---------- online now ----------
+async function live(){
+  const v=$('#view');
+  const draw=async()=>{
+    let rows; try{ rows=await call('gm_admin_live',{p_app:APP}) }catch(e){ return fail(e) }
+    const SL={menu:'On the menu',lobby:'In a game lobby',playing:'Playing'}, PN={phone:'Phone',tablet:'Tablet',desktop:'Computer',other:'Other'};
+    const by={playing:0,lobby:0,menu:0}; rows.forEach(r=>by[r.state]=(by[r.state]||0)+1);
+    v.innerHTML=`<div class="grid kpis">
+        <div class="card kpi live"><div class="label">Online now</div><div class="val"><span class="dot" aria-hidden="true"></span>${rows.length}</div><div class="delta">Updates every 15 seconds</div></div>
+        <div class="card kpi"><div class="label">Playing a game</div><div class="val">${by.playing}</div></div>
+        <div class="card kpi"><div class="label">In a lobby</div><div class="val">${by.lobby}</div></div>
+        <div class="card kpi"><div class="label">On the menu</div><div class="val">${by.menu}</div></div></div>
+      <div class="card" style="margin-top:14px"><h2>Who’s on right now</h2><p class="sub">Seen in the last 90 seconds</p>
+      ${rows.length?`<table><thead><tr><th>Player</th><th>Doing</th><th class="hide-sm">Device</th><th class="num">This visit</th></tr></thead><tbody>${rows.map(r=>`<tr${r.user_id?` class="click" data-user="${esc(r.user_id)}"`:''}>
+        <td><span class="who-cell">${avHTML(r.avatar,r.name)}<b>${esc(r.name)}</b></span></td>
+        <td><span class="badge ${esc(r.state)}">${esc(SL[r.state]||r.state)}${r.state==='playing'&&r.mode?' · '+esc(modeName(r.mode)):''}</span></td>
+        <td class="hide-sm">${esc(PN[r.platform]||r.platform)}${r.installed?' · app':''}</td>
+        <td class="num">${mins(Math.round((Date.now()-new Date(r.started_at))/60000))}<div class="muted small">${mins(r.active_seconds/60)} active</div></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nobody is playing right now.</div>'}</div>`;
+    v.querySelectorAll('[data-user]').forEach(r=>r.onclick=()=>playerDrawer(r.dataset.user));
+  };
+  v.innerHTML='<p class="muted">Loading…</p>'; await draw(); timer=setInterval(()=>{ if(tab==='live'&&!document.querySelector('.drawer')) draw() },15000);
+}
+
+// ---------- players ----------
+async function players(){
+  const v=$('#view');
+  v.innerHTML=`<div class="row filters"><input class="search" id="q" placeholder="Search by name or username" value="${esc(playersQ)}" autocomplete="off"></div><div class="card" id="plist"><p class="muted">Loading…</p></div>`;
+  let t=null; $('#q').oninput=e=>{ clearTimeout(t); t=setTimeout(()=>{ playersQ=e.target.value; load() },250) };
+  const load=async()=>{
+    let r; try{ r=await call('gm_admin_players',{p_app:APP,p_q:playersQ,p_limit:200,p_offset:0}) }catch(e){ return fail(e) }
+    const rows=r.rows||[];
+    $('#plist').innerHTML=`<h2>Players with an account</h2><p class="sub">${fmt(r.total)} have played signed in. Guests are counted in the overview but don’t appear here.</p>
+      ${rows.length?`<table><thead><tr><th>Player</th><th class="num">Games</th><th class="num hide-sm">Wins</th><th class="num hide-sm">Best</th><th class="num">Time played</th><th class="num">Last seen</th></tr></thead><tbody>${rows.map(p=>`<tr class="click" data-user="${esc(p.user_id)}">
+        <td><span class="who-cell">${avHTML(p.avatar,p.name)}<span><b>${esc(p.name)}${p.online?' <span class="dot" title="Online now"></span>':''}</b><small>${p.username?'@'+esc(p.username):''}</small></span></span></td>
+        <td class="num">${fmt(Math.max(p.games,(p.stats&&p.stats.games)||0))}</td><td class="num hide-sm">${fmt((p.stats&&p.stats.wins)||0)}</td><td class="num hide-sm">${fmt((p.stats&&p.stats.best)||0)}</td>
+        <td class="num">${mins(p.minutes)}</td><td class="num">${ago(p.last_seen)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No players match.</div>'}`;
+    $('#plist').querySelectorAll('[data-user]').forEach(row=>row.onclick=()=>playerDrawer(row.dataset.user,load));
+  };
+  load();
+}
+async function playerDrawer(id,after){
+  let list,detail; try{ [list,detail]=await Promise.all([call('gm_admin_players',{p_app:APP,p_q:'',p_limit:200,p_offset:0}),call('gm_admin_player',{p_app:APP,p_user:id,p_tz:TZ})]) }catch(e){ return alert(e.message) }
+  const p=(list.rows||[]).find(r=>r.user_id===id)||{user_id:id,name:'Player',stats:{}}, st=p.stats||{};
+  const d=document.createElement('div'); d.className='drawer';
+  d.innerHTML=`<div class="panel" role="dialog" aria-label="${esc(p.name)}">
+    <div class="head">${avHTML(p.avatar,p.name)}<div><h2 style="margin:0">${esc(p.name)}</h2><div class="muted small">${p.username?'@'+esc(p.username)+' · ':''}${p.online?'online now':'last seen '+ago(p.last_seen)}</div></div><button class="btn small" data-x style="margin-left:auto">Close</button></div>
+    <div class="statgrid"><div><b>${fmt(st.games||p.games)}</b><small>games</small></div><div><b>${fmt(st.wins||0)}</b><small>wins</small></div><div><b>${fmt(st.best||0)}</b><small>best score</small></div>
+      <div><b>${mins(p.minutes)}</b><small>time played</small></div><div><b>${fmt(p.sessions)}</b><small>visits</small></div><div><b>${fmt(st.schools||0)}</b><small>schools</small></div></div>
+    <h2>Time played, last 30 days</h2><div id="dChart"></div>
+    <h2 style="margin-top:14px">Recent games</h2>
+    ${(detail.games||[]).length?`<table><thead><tr><th>When</th><th>Mode</th><th class="num">Score</th><th class="num">Result</th></tr></thead><tbody>${detail.games.map(g=>`<tr><td>${ago(g.started_at)}</td><td>${esc(modeName(g.mode,g.detail))}</td><td class="num">${g.score??'–'}</td><td class="num">${g.finished_at?(g.won?'Won':'–'):'Unfinished'}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No games logged yet.</div>'}
+    <h2 style="margin-top:16px">Manage</h2>
+    <label for="nm">Fliptide name</label><div class="row"><input id="nm" maxlength="24" value="${esc(p.name)}"><button class="btn small primary" data-save>Save name</button></div>
+    <div class="row" style="margin-top:12px"><button class="btn small" data-pic>Remove picture</button><button class="btn small danger" data-stats>Reset stats</button></div>
+    <p class="msg" id="dmsg"></p></div>`;
+  document.body.appendChild(d);
+  const close=()=>{ d.remove(); if(after) after() };
+  d.onclick=e=>{ if(e.target===d) close() }; d.querySelector('[data-x]').onclick=close;
+  addEventListener('keydown',function k(e){ if(e.key==='Escape'){ removeEventListener('keydown',k); close() } });
+  lineChart(d.querySelector('#dChart'),(detail.daily||[]).map(x=>({d:x.day,v:x.minutes})),{label:'Minutes',unit:' min'});
+  const upd=async(args,okMsg)=>{ try{ await call('gm_admin_player_update',Object.assign({p_app:APP,p_user:id,p_name:null,p_reset_avatar:false,p_reset_stats:false},args)); d.querySelector('#dmsg').style.color='var(--accent)'; d.querySelector('#dmsg').textContent=okMsg }
+    catch(e){ d.querySelector('#dmsg').style.color=''; d.querySelector('#dmsg').textContent=e.message } };
+  d.querySelector('[data-save]').onclick=()=>upd({p_name:d.querySelector('#nm').value},'Name saved.');
+  d.querySelector('[data-pic]').onclick=()=>{ if(confirm(`Remove ${p.name}'s Fliptide picture?`)) upd({p_reset_avatar:true},'Picture removed.') };
+  d.querySelector('[data-stats]').onclick=()=>{ if(confirm(`Reset ${p.name}'s Fliptide stats (games, wins, best score)? This can't be undone.`)) upd({p_reset_stats:true},'Stats reset.') };
+}
+
+// ---------- game modes ----------
+async function modes(){
+  const v=$('#view'); v.innerHTML=rangeHTML()+'<p class="muted">Loading…</p>'; wireRange(modes);
+  let o; try{ o=await call('gm_admin_overview',{p_app:APP,p_days:range,p_tz:TZ}) }catch(e){ return fail(e) }
+  const M=o.modes||[], total=M.reduce((a,m)=>a+m.n,0);
+  const by={}; M.forEach(m=>{ const b=by[m.mode]||(by[m.mode]={n:0,fin:0,min:0,pl:0}); b.n+=m.n; b.fin+=m.finished; b.min+=m.avg_min*m.finished; b.pl+=m.avg_players*m.n });
+  const keys=Object.keys(by).sort((a,b)=>by[b].n-by[a].n);
+  const ai=M.filter(m=>m.mode==='ai').sort((a,b)=>b.n-a.n);
+  v.innerHTML=rangeHTML()+(total?`
+    <div class="grid kpis">${keys.map(k=>`<div class="card kpi"><div class="label">${esc(modeName(k))}</div><div class="val">${Math.round(by[k].n/total*100)}%</div><div class="delta">${fmt(by[k].n)} games · ${by[k].n?Math.round(by[k].fin/by[k].n*100):0}% finished</div></div>`).join('')}</div>
+    <div class="grid cols2" style="margin-top:14px">
+      <div class="card"><h2>Games by mode</h2><p class="sub">Last ${range} days</p>${barsHTML(keys.map(k=>({name:modeName(k),v:by[k].n})),{max:Math.max(...keys.map(k=>by[k].n))})}</div>
+      <div class="card"><h2>vs AI: which levels</h2><p class="sub">Games against the computer, by the levels at the table</p>${ai.length?barsHTML(ai.map(m=>({name:modeName('ai',m.detail).replace('vs AI · ',''),v:m.n})),{max:Math.max(...ai.map(m=>m.n))}):'<div class="empty">No games against the AI yet.</div>'}</div>
+    </div>
+    <div class="card" style="margin-top:14px"><h2>Details</h2><p class="sub">Every mode and AI mix</p>
+      <table><thead><tr><th>Mode</th><th class="num">Games</th><th class="num">Finished</th><th class="num hide-sm">Avg length</th><th class="num hide-sm">Avg players</th></tr></thead><tbody>${M.map(m=>`<tr><td>${esc(modeName(m.mode,m.detail))}</td><td class="num">${fmt(m.n)}</td><td class="num">${m.n?Math.round(m.finished/m.n*100):0}%</td><td class="num hide-sm">${m.avg_min?m.avg_min+' min':'–'}</td><td class="num hide-sm">${m.avg_players}</td></tr>`).join('')}</tbody></table></div>`
+    :'<div class="card empty">No games in this period yet.</div>');
+}
+
+// ---------- customize: straight into Studio ----------
+function customize(){
+  const I={brand:'<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/>',splash:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/>',home:'<path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/>',
+    tokens:'<circle cx="12" cy="12" r="8"/><path d="M8 12c1.5-2 6.5-2 8 0-1.5 2-6.5 2-8 0z"/>',fish:'<path d="M3 12c3-4 9-5 13 0-4 5-10 4-13 0z"/><path d="M16 12l5-4v8z"/>',narr:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 4-7 8-7s7 2 8 7"/>',
+    cards:'<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 10h8M8 14h5"/>',bg:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 16c4-3 7 2 11-1s5 1 7 0"/>',colors:'<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="15.5" cy="10" r="1.3"/>',
+    fonts:'<path d="M5 19L11 5h2l6 14M8 14h8"/>',text:'<path d="M4 6h16M4 12h16M4 18h10"/>',sound:'<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 9a4 4 0 0 1 0 6"/>'};
+  const C=[['brand','Name & logo','The game’s name and the logo on the home screen'],['splash','Loading screen','Phone and computer pictures, the logo’s spot and size, the Play button'],
+    ['home','Home page','Background, extra artwork, narrators on each section'],['tokens','Tokens','Icons on the tokens, token material and backs'],['fish','Fish pairs','The ten fish designs'],
+    ['narr','Narrators','Characters who appear on the cards'],['cards','Cards','Card height, see-through, buttons and their layout'],['bg','Backgrounds','The table and background pictures'],
+    ['colors','Colors','Every color in the game'],['fonts','Fonts','Titles, headings and everything else'],['text','Text','Every word in the game'],['sound','Music & sounds','Music and every sound effect']];
+  $('#view').innerHTML=`<div class="card" style="margin-bottom:14px"><h2>Customize Fliptide</h2><p class="sub" style="margin:0">Each one opens the game’s Studio at that section, in a new tab. Studio asks you to sign in with Google the first time; changes go live for every player as soon as you publish them there.</p></div>
+    <div class="grid cust">${C.map(([k,t,s])=>`<a href="./?studio=${k}" target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg></span><span><b>${esc(t)}</b><span>${esc(s)}</span></span></a>`).join('')}</div>`;
+}
+
+let rz=null; addEventListener('resize',()=>{ clearTimeout(rz); rz=setTimeout(()=>document.querySelectorAll('.chartbox').forEach(e=>{ if(e._draw) e._draw() }),150) });
+const start=(location.hash||'').slice(1); if(['overview','live','players','modes','customize'].includes(start)) tab=start;
+boot();
+</script>
+</body>
+</html>

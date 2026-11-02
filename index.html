@@ -1207,6 +1207,7 @@ function newGame(setup,seed){ HOME.tab='play'; ZM.s=1; ZM.x=0; ZM.y=0;
   S.cur=Math.floor(grand()*S.players.length); S.summary=TT('firstPlayer',{name:P().name});
   if(isAI(P())||S.players.filter(p=>!isAI(p)).length<2) S.phase='flip';
   boardEl=null;
+  try{ TRACK.gameStart() }catch(e){}
 }
 const freshTurn = () => ({rev:[], picks:0, pending:null, banked:0, peek:null, act:null, peeked:[]});
 const P = () => S.players[S.cur];
@@ -2919,7 +2920,7 @@ function endTurn(summary){
   S.phase=(!S.net&&!isAI(P())&&humans>1)?'handoff':'flip';
   render();
 }
-function finish(){ cloudDrop(S.saveCode); S.screen='over'; try{ SOC.recordGame() }catch(e){ console.warn('stats',e) } S.phase=null; render(); sfx('fanfare'); if(S.net&&S.net.host){NET.g.st='over';publishG();lobbyAnnounce()} }
+function finish(){ cloudDrop(S.saveCode); S.screen='over'; try{ SOC.recordGame() }catch(e){ console.warn('stats',e) } try{ TRACK.gameEnd() }catch(e){} S.phase=null; render(); sfx('fanfare'); if(S.net&&S.net.host){NET.g.st='over';publishG();lobbyAnnounce()} }
 
 // ---------- home page: Play and Guide tabs, and narrators on each section ----------
 const HOME={tab:'play'};
@@ -3706,7 +3707,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2610280436;
+const BUILD=2611021754;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.
@@ -4144,6 +4145,56 @@ const SOC=(()=>{
   }
   return {enabled,init,open,openInvite,close,set _go(f){ go=f },wire,btnHTML,badge,recordGame,fromGame,board,get user(){ return user },get prof(){ return prof },_lists:()=>user?lists():null};
 })();
+// ---------- usage stats for the admin dashboard (admin.html): anonymous, no names unless signed in ----------
+// Each visit sends a small ping about every 30s while the game is on screen: active seconds (only while someone has touched
+// it in the last 2 minutes), phone/tablet/computer, installed app or browser, and menu/lobby/playing. Each game is logged when
+// it starts and when it ends: pass-and-play, vs AI (which levels) or online, how many players, how long, the score.
+// Stored in gm_sessions / gm_plays (shared Supabase project); only admins can read them.
+const TRACK=(()=>{
+  const on=/(^|\.)grudgematchgames\.com$/.test(location.hostname)||!!window.GM_TRACK;
+  const url=(window.GM_TRACK&&window.GM_TRACK.url)||GM.url;
+  const uuid=()=>crypto.randomUUID?crypto.randomUUID():'10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(+c^Math.random()*16>>+c/4).toString(16));
+  let device=''; try{ device=localStorage.getItem('gm.device')||''; if(!/^[A-Za-z0-9_-]{8,40}$/.test(device)){ device=uuid().replace(/-/g,'').slice(0,20); localStorage.setItem('gm.device',device) } }catch(e){ device=uuid().replace(/-/g,'').slice(0,20) }
+  let session=uuid(), pending=0, lastInput=Date.now(), hiddenAt=0, sentState='', play=null;
+  const coarse=matchMedia('(pointer:coarse)').matches, small=Math.min(screen.width,screen.height);
+  const platform=coarse?(small<600?'phone':'tablet'):'desktop';
+  const installed=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  const token=()=>{ try{ const t=JSON.parse(localStorage.getItem('sb-zhfkcjzajazsrpqeyaea-auth-token')||'null'); return t&&t.access_token&&t.expires_at*1000>Date.now()+5000?t.access_token:'' }catch(e){ return '' } };
+  function rpc(fn,args){
+    if(!on) return; const t=token();
+    try{ fetch(`${url}/rest/v1/rpc/${fn}`,{method:'POST',keepalive:true,headers:{apikey:GM.key,Authorization:'Bearer '+(t||GM.key),'Content-Type':'application/json'},body:JSON.stringify(args)}).catch(()=>{}) }catch(e){}
+  }
+  const state=()=>!S?'menu':S.screen==='play'?'playing':S.screen==='wait'?'lobby':'menu';
+  function ping(){ const add=pending; pending=0; sentState=state()+(play?play.mode:'');
+    rpc('gm_session_ping',{p_session:session,p_app:GM.app,p_device:device,p_add:add,p_platform:platform,p_installed:installed(),p_version:String(typeof BUILD!=='undefined'?BUILD:''),p_state:state(),p_mode:play?play.mode:''}) }
+  if(on){
+    ['pointerdown','keydown','wheel','touchstart'].forEach(e=>addEventListener(e,()=>{ lastInput=Date.now() },{passive:true,capture:true}));
+    setInterval(()=>{ if(document.visibilityState==='visible'&&Date.now()-lastInput<120000) pending++;
+      if(state()+(play?play.mode:'')!==sentState&&pending>=1) ping() },1000);
+    setInterval(()=>{ if(document.visibilityState==='visible') ping() },30000);
+    addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'){ hiddenAt=Date.now(); ping() }
+      else { if(hiddenAt&&Date.now()-hiddenAt>30*60000){ session=uuid() } lastInput=Date.now(); ping() } });
+    setTimeout(ping,1500);
+  }
+  // a game starts: what kind, and how many play
+  function gameStart(){
+    if(!on||!S||!S.players) return;
+    const ai=S.players.filter(isAI).map(p=>p.kind), humans=S.players.filter(p=>!isAI(p)).length;
+    const mode=S.net?'online':ai.length?'ai':'local';
+    play={id:uuid(),mode,started:Date.now()}; S.playId=play.id;
+    rpc('gm_play_log',{p_id:play.id,p_app:GM.app,p_device:device,p_mode:mode,p_detail:[...new Set(ai)].sort().join('+'),p_players:S.players.length,p_humans:humans,p_finished:false});
+    ping();
+  }
+  // it ends: the score of whoever is playing on this device (the first person here), and whether they won
+  function gameEnd(){
+    if(!on||!S||!S.players) return; const id=S.playId||(play&&play.id); if(!id) return;
+    const me=S.players.findIndex((p,i)=>!isAI(p)&&mine(i)), sc=S.players.map(finalScore), js=S.players.map(jellyCount), top=Math.max(...sc);
+    const best=Math.min(...S.players.map((p,i)=>sc[i]===top?js[i]:99));
+    rpc('gm_play_log',{p_id:id,p_app:GM.app,p_device:device,p_mode:(play&&play.mode)||'local',p_finished:true,p_score:me>=0?sc[me]:null,p_won:me>=0?(sc[me]===top&&js[me]===best):null});
+    S.playId=null; play=null; ping();
+  }
+  return {on,gameStart,gameEnd,get device(){ return device }};
+})();
 function start(d){
   try{ applyAccess() }catch(e){}
   const sp=document.getElementById('splash');
@@ -4152,6 +4203,8 @@ function start(d){
   try{ checkUpdate() }catch(e){}
   try{ lbWatch(); setInterval(lbWatch,60000) }catch(e){}
   try{ SOC.init() }catch(e){ console.warn('social',e) }
+  try{ const q=new URLSearchParams(location.search), st=q.get('studio'); if(st!=null){ q.delete('studio'); history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);
+    if(/^[a-z]{2,10}$/.test(st)) STUDIO.tab=st; setTimeout(()=>{ try{ openStudio() }catch(e){} },400) } }catch(e){}
   try{ const j=new URLSearchParams(location.search).get('join'); if(j){ const u=new URL(location.href); u.searchParams.delete('join'); history.replaceState(null,'',u.href); setTimeout(()=>joinByCode(j.replace(/[^a-z]/gi,'').slice(0,4)),300) } }catch(e){}
   try{ const q=new URLSearchParams(location.search).get('game'); if(q){ const u=new URL(location.href); u.searchParams.delete('game'); history.replaceState(null,'',u.href); setTimeout(()=>openSavedGame(q),300) } }catch(e){}
   const saved=load();

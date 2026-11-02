@@ -20,6 +20,25 @@ The round profile button at the top of the home screen signs players in with the
 
 One dashboard step for Google and Facebook sign-in: Supabase → Authentication → URL Configuration → Redirect URLs, add `https://fliptide.grudgematchgames.com/**`.
 
+## Admin dashboard
+
+`admin.html` (fliptide.grudgematchgames.com/admin.html) is the admin dashboard. Sign in with a Grudge Match Games account that has
+the admin role (or a row in `public.gm_app_admins`). It shows:
+
+- **Overview:** players, time played, average visit, games played and accounts, each compared with the period before; players,
+  time and games per day; visits by hour of day; most played modes; phones, tablets and computers (and how many play from the
+  installed app); the players with the most time played. 7, 30 or 90 days, on Mountain Time.
+- **Online now:** who has the game open right now and what they're doing (menu, lobby, playing which mode). Updates every 15 seconds.
+- **Players:** every player who has played signed in, with search. Open one for their time per day, recent games and stats, and to
+  rename them, remove their picture or reset their stats.
+- **Game modes:** pass and play, vs AI (by level) and online: share of games, finish rate, average length and players.
+- **Customize:** opens the game's Studio straight at a section (`/?studio=colors` and so on) for logos, artwork, token icons,
+  narrators, cards, backgrounds, colors, fonts, text and sounds.
+
+The game sends the usage data only on grudgematchgames.com: a small ping about every 30 seconds while it's on screen (time is
+counted only while someone has touched it in the last 2 minutes) and one record per game. Guests are an anonymous device id;
+signed-in players are linked to their account. Tables and functions: `supabase/migrations/20261102000001_gm_usage_and_admin.sql`.
+
 ## Credits
 
 Sea-creature avatars (`assets/av-*.webp`) are from [Fluent Emoji](https://github.com/microsoft/fluentui-emoji) by Microsoft, used under the MIT License.
