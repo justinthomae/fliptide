@@ -1411,7 +1411,7 @@ function audio(){
 let AUDIO_USED=0, AWAY=false;
 setInterval(()=>{ if(actx&&actx.state==='running'&&!(MUSIC.playing&&!MUSIC.el)&&Date.now()-AUDIO_USED>3000) actx.suspend().catch(()=>{}) },1000);
 // the first tap anywhere unlocks audio; music starts then, unless the loading screen is still up
-addEventListener('pointerdown',()=>{ if(PREFS.sound||PREFS.music) audio(); if(!document.getElementById('splash')) musicStart() },{passive:true});
+addEventListener('pointerdown',()=>{ if(PREFS.sound||PREFS.music) audio(); if(PREFS.sound) preloadDefaults(); if(!document.getElementById('splash')) musicStart() },{passive:true});
 function tone(f0,f1,dur,{type='sine',vol=.15,delay=0,vib=0,lp=0}={}){
   const a=audio(); if(!a) return;
   const t=a.currentTime+delay+.005, o=a.createOscillator(), g=a.createGain();
@@ -1456,19 +1456,35 @@ function buzz(p){
   try{ if(navigator.vibrate){ navigator.vibrate(p); return } }catch(e){}
   try{ hapticLabel&&hapticLabel.click() }catch(e){}
 }
-// a sound the admin uploaded, decoded once and played through the same volume as the built-in ones
+// a sound file (one the admin uploaded, or a built-in one), decoded once and played through the same volume as the rest;
+// if it can't be loaded, fallback() plays the synthesized sound instead
 const BUF={};
-async function playCustom(e,vol=1){
-  const a=audio(), src=srcOf(e); if(!a||!src) return;
-  const key=e.asset||e.url; let b=BUF[key];
-  if(!b){ try{ b=BUF[key]=await a.decodeAudioData(await (await fetch(src)).arrayBuffer()) }catch(x){ return } }
+async function loadBuf(e){
+  const a=audio(), src=srcOf(e); if(!a||!src) return null;
+  const key=e.asset||e.url; if(BUF[key]!==undefined) return BUF[key];
+  try{ const r=await fetch(src); if(!r.ok) throw new Error(r.status); return BUF[key]=await a.decodeAudioData(await r.arrayBuffer()) }catch(x){ return BUF[key]=null }
+}
+async function playCustom(e,vol=1,fallback){
+  const a=audio(); if(!a) return;
+  const b=await loadBuf(e); if(!b){ if(fallback) fallback(); return }
   const n=a.createBufferSource(), g=a.createGain(); g.gain.value=vol; n.buffer=b; n.connect(g).connect(master); n.start();
 }
 const customSfx = name => THEME.audio&&THEME.audio.sfx&&THEME.audio.sfx[name];
-function playBubbleSound(vol=.04){ const c=customSfx('bubble'); if(srcOf(c)) return playCustom(c,1); if(actx&&audio()) bubble(actx.currentTime,vol) }
+// The built-in sounds and music: made with ElevenLabs (music and sound effects), trimmed and level-matched, in assets/audio.
+// Where the files aren't there (the single-file preview), the synthesized sounds play instead.
+const DEF_AUDIO='assets/audio/', DEF_SFX=['flip','fish','star','plip','jelly','shark','whirl','dolphin','extra','chime','hook','peek','thud','turn','tap','fanfare','bubble'];
+const DEF_SFX_VOL=.32, DEF_MUSIC_VOL=.34, DEF_MUSIC_LOOP=4646817/44100;   // the music loops seamlessly every 105.37 s
+const defaultSfx = name => DEF_SFX.includes(name)?{url:DEF_AUDIO+name+'.mp3'}:null;
+// fetch and decode them all once audio is allowed, so the first of each plays straight away
+let defPreloaded=false;
+function preloadDefaults(){ if(defPreloaded||!audio()) return; defPreloaded=true; DEF_SFX.forEach(n=>{ if(!srcOf(customSfx(n))) loadBuf(defaultSfx(n)) }) }
+function playBubbleSound(vol=.04){ const c=customSfx('bubble'); if(srcOf(c)) return playCustom(c,1);
+  const synth=()=>{ if(actx&&audio()) bubble(actx.currentTime,vol) }, d=defaultSfx('bubble'), b=BUF[d.url];
+  if(b===null) return synth(); playCustom(d,DEF_SFX_VOL*vol/.04,synth) }
 function sfx(name,...args){
   if(NET.ff) return;
-  if(PREFS.sound){ try{ const c=customSfx(name); if(srcOf(c)) playCustom(c); else SFX[name]&&SFX[name](...args) }catch(e){} }
+  if(PREFS.sound){ try{ const c=customSfx(name), d=defaultSfx(name), synth=()=>{ SFX[name]&&SFX[name](...args) };
+    if(srcOf(c)) playCustom(c); else if(d&&BUF[d.url]!==null) playCustom(d,DEF_SFX_VOL,synth); else synth() }catch(e){} }
   buzz(HAPTIC[name]);
 }
 const ICONS={
@@ -1553,6 +1569,22 @@ function musicStart(){
   const custom=srcOf(THEME.audio&&THEME.audio.music);
   if(custom){ MUSIC.el=new Audio(custom); MUSIC.el.loop=true; MUSIC.el.volume=.45; MUSIC.el.play().catch(()=>{}); MUSIC.playing=true; return }
   const a=audio(); if(!a||!musicBus()) return;
+  if(!MUSIC.noFile){ MUSIC.playing=true; musicFile(a); return }
+  musicSynth(a);
+}
+// the built-in tune: decoded once, looped sample-exactly (from the first real sample, so encoder padding never adds a gap)
+async function musicFile(a){
+  const key=DEF_AUDIO+'music.mp3'; let b=BUF[key];
+  if(b===undefined) b=await loadBuf({url:key});
+  if(!MUSIC.playing||MUSIC.src) return;
+  if(!b){ MUSIC.noFile=true; return musicSynth(a) }
+  const d=b.getChannelData(0); let s0=0; while(s0<Math.min(d.length,b.sampleRate*.2)&&Math.abs(d[s0])<1e-4) s0++;
+  const src=a.createBufferSource(), g=a.createGain(), t=a.currentTime;
+  src.buffer=b; src.loop=true; src.loopStart=s0/b.sampleRate; src.loopEnd=Math.min(b.duration,src.loopStart+DEF_MUSIC_LOOP);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(DEF_MUSIC_VOL,t+3);
+  src.connect(g).connect(master); src.start(t,src.loopStart); MUSIC.src=src; MUSIC.srcGain=g;
+}
+function musicSynth(a){
   MUSIC.playing=true; MUSIC.next=a.currentTime+.15; MUSIC.step=0;
   MUSIC.bus.gain.cancelScheduledValues(a.currentTime);
   MUSIC.bus.gain.setValueAtTime(MUSIC.bus.gain.value,a.currentTime); MUSIC.bus.gain.linearRampToValueAtTime(.55,a.currentTime+4);
@@ -1571,7 +1603,7 @@ function quietForBackground(hidden){
   } else {
     try{ master.connect(actx.destination) }catch(e){}
     actx.resume().catch(()=>{}).then(()=>{ const n=actx.currentTime; master.gain.cancelScheduledValues(n); master.gain.setValueAtTime(0,n); master.gain.linearRampToValueAtTime(.8,n+.25); AUDIO_USED=Date.now();
-      if(MUSIC.playing&&!MUSIC.el){ MUSIC.next=Math.max(MUSIC.next,n+.1); clearInterval(MUSIC.timer); MUSIC.timer=setInterval(musicTick,120) } });
+      if(MUSIC.playing&&!MUSIC.el&&!MUSIC.src){ MUSIC.next=Math.max(MUSIC.next,n+.1); clearInterval(MUSIC.timer); MUSIC.timer=setInterval(musicTick,120) } });
   }
 }
 const touchDevice=matchMedia('(pointer:coarse)').matches;
@@ -1584,6 +1616,8 @@ if(touchDevice){ addEventListener('blur',()=>quietForBackground(true)); addEvent
 function musicStop(){
   if(!MUSIC.playing) return; MUSIC.playing=false;
   if(MUSIC.el){ MUSIC.el.pause(); MUSIC.el=null; return }
+  if(MUSIC.src){ const a=actx, src=MUSIC.src, g=MUSIC.srcGain; MUSIC.src=null; MUSIC.srcGain=null;
+    try{ g.gain.cancelScheduledValues(a.currentTime); g.gain.setValueAtTime(g.gain.value,a.currentTime); g.gain.linearRampToValueAtTime(0,a.currentTime+.8); src.stop(a.currentTime+.85) }catch(e){} return }
   const a=actx; if(a&&MUSIC.bus){ MUSIC.bus.gain.cancelScheduledValues(a.currentTime); MUSIC.bus.gain.setValueAtTime(MUSIC.bus.gain.value,a.currentTime); MUSIC.bus.gain.linearRampToValueAtTime(0,a.currentTime+.8) }
   setTimeout(()=>{ if(!MUSIC.playing) clearInterval(MUSIC.timer) },900);
 }
@@ -2324,7 +2358,7 @@ function renderStudio(){
   } else if(STUDIO.tab==='sound'){
     const m=E.audio&&E.audio.music;
     body=`<p class="muted">Upload MP3, M4A, WAV or OGG files (under 4.5 MB). Keep sound effects short; music loops.</p>
-      <div class="st-row"><div class="st-grow"><b>Background music</b><span class="muted"> ${srcOf(m)?'Your track':'Built-in calm loop'}</span><div class="st-acts">
+      <div class="st-row"><div class="st-grow"><b>Background music</b><span class="muted"> ${srcOf(m)?'Your track':'Built-in lagoon tune'}</span><div class="st-acts">
         <button class="btn small" id="stMusicPlay">${MUSIC.playing?'Stop':'Play'}</button><button class="btn small" data-audioup="music">Upload</button>${srcOf(m)?`<button class="btn small ghost" data-audioreset="music">Reset</button>`:''}</div></div></div>
       <div class="st-list">${Object.keys(SFX_LABELS).map(n=>{ const e=E.audio&&E.audio.sfx&&E.audio.sfx[n];
         return `<div class="st-row slim"><button class="btn small" data-sfxplay="${n}">▶</button><span class="st-grow">${SFX_LABELS[n]}${srcOf(e)?' <span class="muted">(yours)</span>':''}</span><button class="btn small" data-sfxup="${n}">Upload</button>${srcOf(e)?`<button class="btn small ghost" data-sfxreset="${n}">Reset</button>`:''}</div>` }).join('')}</div>`;
@@ -3707,7 +3741,7 @@ function startTheme(){
   }).catch(e=>console.warn('theme',e));
   resumeStudioRedirect();
 }
-const BUILD=2611021754;
+const BUILD=2611032039;
 // A newer version on the site: if it's found in the first moments after opening, while the loading screen is untouched,
 // download it first and then switch to it (so the switch is instant). Otherwise never reload under someone:
 // the home screen shows an "Update" link instead.

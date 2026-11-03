@@ -41,4 +41,6 @@ signed-in players are linked to their account. Tables and functions: `supabase/m
 
 ## Credits
 
+Music and sound effects (`assets/audio/*.mp3`) were made with ElevenLabs (Music v2.5 and Sound Effects v2) for Grudge Match Games, then trimmed and level-matched. The music loops seamlessly every 105.37 s. A sound or track uploaded in Studio replaces the built-in one; if the files can't load, the game falls back to its synthesized sounds.
+
 Sea-creature avatars (`assets/av-*.webp`) are from [Fluent Emoji](https://github.com/microsoft/fluentui-emoji) by Microsoft, used under the MIT License.
