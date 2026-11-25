@@ -20,6 +20,15 @@ The round profile button at the top of the home screen signs players in with the
 
 One dashboard step for Google and Facebook sign-in: Supabase → Authentication → URL Configuration → Redirect URLs, add `https://fliptide.grudgematchgames.com/**`.
 
+## Quick play, Daily Fliptide and achievements
+
+- **Play now** starts a 2-player game against Medium AI. **Play with a friend** opens a 2-seat online room and shares the join link. Quick games never overwrite the custom setup on the Play tab.
+- **Daily Fliptide #N**: the same deal for everyone each day (seeded from the Mountain Time date). The first try on a device is the official one and goes to its own leaderboard (`gm_daily_submit` / `gm_daily_board` in Supabase). Replays are practice. Results can be shared.
+- **Hide scores until the end** (on by default): you see only your own score during play, and the game-over screen reveals scores one by one, winner last.
+- **Achievements** (12): kept on the device (`jf.ach`) and on the Grudge Match profile (`stats.ach`). They show in the Guide tab, the profile sheet and on the game-over screen.
+- First game: short tips that each show once, with **Skip tips**.
+- Admin dashboard → Game modes: **Players' win rate vs AI** per level, against targets of Easy 70%, Medium 50% and Hard 30%.
+
 ## Admin dashboard
 
 `admin.html` (fliptide.grudgematchgames.com/admin.html) is the admin dashboard. Sign in with a Grudge Match Games account that has

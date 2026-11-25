@@ -111,6 +111,9 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
 .oauth{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff;color:#1f2330;border:0;border-radius:12px;padding:11px;font-weight:700;cursor:pointer}
 .msg{color:#f1b6ac;margin-top:10px;min-height:1.4em}
 @media (max-width:600px){ .kpi .val{font-size:24px} .hide-sm{display:none} .wrap{padding:12px} }
+.winrates{display:flex;flex-direction:column;gap:14px}.wrh{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}.wrh small{opacity:.7}
+.wrbar{position:relative;height:14px;border-radius:7px;background:rgba(127,127,127,.2);overflow:visible}.wrbar i{display:block;height:100%;border-radius:7px;background:currentColor;opacity:.75}
+.wrbar s{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed currentColor}
 </style>
 </head>
 <body>
@@ -355,7 +358,18 @@ async function modes(){
     </div>
     <div class="card" style="margin-top:14px"><h2>Details</h2><p class="sub">Every mode and AI mix</p>
       <table><thead><tr><th>Mode</th><th class="num">Games</th><th class="num">Finished</th><th class="num hide-sm">Avg length</th><th class="num hide-sm">Avg players</th></tr></thead><tbody>${M.map(m=>`<tr><td>${esc(modeName(m.mode,m.detail))}</td><td class="num">${fmt(m.n)}</td><td class="num">${m.n?Math.round(m.finished/m.n*100):0}%</td><td class="num hide-sm">${m.avg_min?m.avg_min+' min':'–'}</td><td class="num hide-sm">${m.avg_players}</td></tr>`).join('')}</tbody></table></div>`
-    :'<div class="card empty">No games in this period yet.</div>');
+    :'<div class="card empty">No games in this period yet.</div>')+`<div class="card" style="margin-top:14px" id="cWin"><h2>Players’ win rate vs AI</h2><p class="sub">Finished games against the computer in the last ${range} days. Aim for about Easy 70%, Medium 50%, Hard 30%.</p><p class="muted">Loading…</p></div>`;
+  aiWin();
+}
+async function aiWin(){
+  const el=$('#cWin'); if(!el) return; let rows;
+  try{ rows=await call('gm_admin_ai',{p_app:APP,p_days:range}) }catch(e){ el.querySelector('.muted').textContent='Couldn’t load win rates.'; return }
+  const L={easy:{n:0,w:0,aim:70},medium:{n:0,w:0,aim:50},hard:{n:0,w:0,aim:30},mixed:{n:0,w:0,aim:null}};
+  for(const r of rows||[]){ const k=L[r.detail]?r.detail:'mixed'; L[k].n+=r.finished; L[k].w+=r.won }
+  const names={easy:'Easy',medium:'Medium',hard:'Hard',mixed:'Mixed levels'};
+  const list=Object.keys(L).filter(k=>L[k].n);
+  el.querySelector('.muted').outerHTML=list.length?`<div class="winrates">${list.map(k=>{ const x=L[k], pct=Math.round(x.w/x.n*100), off=x.aim==null?'':pct>x.aim+15?'Too easy: make this AI smarter':pct<x.aim-15?'Too hard: make this AI forget more':'About right';
+    return `<div class="wr"><div class="wrh"><b>${names[k]}</b><span>${pct}% won <small>(${fmt(x.w)} of ${fmt(x.n)})</small></span></div><div class="wrbar" role="img" aria-label="${names[k]}: players won ${pct}%${x.aim!=null?', target '+x.aim+'%':''}"><i style="width:${pct}%"></i>${x.aim!=null?`<s style="left:${x.aim}%" title="Target ${x.aim}%"></s>`:''}</div>${x.aim!=null?`<small class="muted">${x.n<20?'Too few games to judge yet (fewer than 20). ':''}${x.n>=20?off+' · ':''}target ${x.aim}%</small>`:''}</div>` }).join('')}</div>`:'<div class="empty">No finished games against the AI yet.</div>';
 }
 
 // ---------- customize: straight into Studio ----------

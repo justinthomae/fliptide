@@ -650,6 +650,37 @@ html.playing,html.playing body{overflow:hidden;overscroll-behavior:none}
 .row .s{font-variant-numeric:tabular-nums;font-weight:700;font-size:1.2rem}
 .row small{display:block;color:var(--ink-2);font-size:.8rem;font-variant-numeric:tabular-nums}
 .row.win{background:color-mix(in srgb,var(--sea) 22%,var(--table-2))}
+.revealing .podium .row:not(.shown){opacity:.45} .revealing .podium .row:not(.shown) small,.revealing h2:not(.shown),.revealing .overx:not(.shown){visibility:hidden}
+.podium .row.counting .s{color:var(--sea)} .podium .row.landed{animation:jfLand .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes jfLand{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
+.revealing h2.shown{animation:jfLand .45s ease-out}
+.popfx .cb{position:absolute;border-radius:50%;border:1.5px solid rgba(255,255,255,.8);background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.7),rgba(108,196,182,.25) 60%,transparent);animation:jfCheer 1.2s cubic-bezier(.2,.7,.3,1) both}
+@keyframes jfCheer{0%{transform:translate(-50%,-50%) scale(.2);opacity:0}15%{opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1);opacity:0}}
+.pb{margin:0;font-weight:700;color:var(--sea);font-size:1.1rem} .pb small{color:var(--ink-2);font-weight:400;font-size:.8rem}
+.overx{display:flex;flex-direction:column;gap:10px;width:100%}
+.overdaily{background:var(--table-2);border-radius:12px;padding:8px 12px;font-size:.9rem}
+.newach{display:flex;flex-direction:column;gap:6px;text-align:left}
+.achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.ach{display:grid;grid-template-columns:30px 1fr;column-gap:8px;align-items:center;background:var(--table-2);border-radius:12px;padding:8px 10px;text-align:left}
+.ach .ic{grid-row:span 2;font-size:1.4rem;text-align:center} .ach b{font-size:.9rem} .ach small{color:var(--ink-2);font-size:.72rem;line-height:1.25}
+.ach:not(.on){opacity:.6} .ach.on{background:color-mix(in srgb,var(--sea) 18%,var(--table-2))}
+.hero .btn.big{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:1.35rem;padding:.75em 1em;position:relative}
+.hero .btn.big svg{position:absolute;left:22px;top:50%;width:26px;height:26px;transform:translateY(-50%);fill:currentColor}
+.hero .btn.big small{font-size:.75rem;font-weight:600;opacity:.8}
+.herorow{display:grid;grid-template-columns:1fr 1fr;gap:8px} .herorow .btn{padding:.7em .6em} .herorow small{display:block;font-size:.7rem;color:var(--sea);font-weight:600}
+.herohint{text-align:center;margin:0}
+.dboard{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.dboard li{display:grid;grid-template-columns:22px 24px 1fr auto;gap:8px;align-items:center;background:var(--table-2);border-radius:10px;padding:6px 10px}
+.dboard li.me{outline:2px solid var(--sea)} .dboard img,.dboard i{width:24px;height:24px;border-radius:50%;object-fit:contain;background:var(--panel-2)}
+.dboard b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600} .dboard .s{font-weight:700;font-variant-numeric:tabular-nums} .dboard small{color:var(--sea);font-size:.7rem}
+.dres{margin:0} .card.flash{animation:jfFlash 1s ease-out} @keyframes jfFlash{0%{box-shadow:0 0 0 4px var(--sea)}100%{box-shadow:0 0 0 0 transparent}}
+.hidesw{display:flex;gap:10px;align-items:flex-start;cursor:pointer} .hidesw input{width:22px;height:22px;margin-top:2px;accent-color:var(--sea);flex:none}
+.hidesw small{display:block;color:var(--ink-2);font-size:.78rem}
+.coach{position:fixed;left:50%;bottom:calc(175px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;width:min(calc(100% - 32px),400px);box-sizing:border-box;background:var(--wood);color:#2b211b;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:jfCoach .3s ease-out}
+.coach p{margin:0 0 8px} .coach div{display:flex;gap:12px;align-items:center} .coach .btn{background:#2b211b;color:var(--wood)} .coach .linkbtn{color:#5a3f2c}
+@keyframes jfCoach{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+#shareRoom.pulse{animation:jfFlash 1.2s ease-out 2}
+@media (prefers-reduced-motion:reduce){ .podium .row.landed,.revealing h2.shown,.coach,.card.flash,#shareRoom.pulse{animation:none} .popfx .cb{display:none} }
 .btnrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 
 @media (max-width:420px){ h1{font-size:2.2rem} .bar .msg strong{font-size:1.2rem} }
@@ -1172,6 +1203,7 @@ function fillAvatars(st){
 }
 function setMyName(n){ n=cleanName(n||''); if(isDefaultName(n)) return; try{ localStorage.setItem(MYNAME_KEY,n.slice(0,20)) }catch(e){} }
 function setupState(prev){
+  if(prev&&prev.quick) prev=loadSetup()||null;
   const st = prev || {count:3, names:[]};
   st.names = Array.from({length:8},(_,i)=>(st.names&&st.names[i])||`Player ${i+1}`);
   st.kinds = Array.from({length:8},(_,i)=>{ const k=st.kinds&&st.kinds[i]; return k&&(k!=='remote'||(prev&&prev.kinds&&prev.kinds.includes('remote')))?k:'human' });
@@ -1197,7 +1229,7 @@ function newGame(setup,seed){ HOME.tab='play'; ZM.s=1; ZM.x=0; ZM.y=0;
   S = {screen:'play', setup, h:null, layout:null, tick:0, turnNo:0, rs:rs0, roomName:roomNameFrom(rs0), net:null,
     players:names.map((name,i)=>({name,color:COLORS[i],bank:[],jellies:0,kind:setup.kinds[i]||'human',mem:{},av:(setup.avatars&&setup.avatars[i])||null})),
     cur:0, slots:[], nextId:0, scrap:[], turn:freshTurn(),
-    phase:'handoff', summary:null, card:null, quitArm:false, rulesOpen:false};
+    phase:'handoff', summary:null, card:null, quitArm:false, rulesOpen:false, hidden:setup.hidden!==false, started:Date.now()};
   S.players.forEach(p=>{ if(p.kind==='human'&&p.av) rememberAv(p.name,p.av) });
   const bag=[]; for(const t of ORDER) for(let i=0;i<TYPES[t].n;i++) bag.push(t);
   gshuffle(bag); S.slots=bag.map((t,i)=>({id:i,t,up:false})); S.nextId=bag.length;
@@ -1231,7 +1263,7 @@ const bankLabel = pend => { const pr=turnPairs(); return ' +'+(pend-pr)+(pr?' '+
 const turnPts = () => turnGot().reduce((a,t)=>a+TYPES[t].pts,0)+turnPairs();
 function scrapSeen(t){ S.scrapMass=S.scrapMass||{}; S.scrapMass[t]=(S.scrapMass[t]||0)+1; (S.seenScrap=S.seenScrap||[]).push(t) }
 function scrapTaken(n){ const m=S.scrapMass||{}, tot=Object.values(m).reduce((a,b)=>a+b,0); if(tot&&n) for(const k in m) m[k]*=Math.max(0,1-n/tot) }
-const bankedNote = () => S.turn.banked ? TT('noteBanked',{points:plural(S.turn.banked,'point')}) : TT('noteNothing');
+const bankedNote = () => S.turn.banked ? TT('noteBanked',{points:ptsW(S.turn.banked)}) : TT('noteNothing');
 
 // ---------- animation helpers ----------
 const RM = matchMedia('(prefers-reduced-motion: reduce)');
@@ -1299,7 +1331,7 @@ async function bankFlights(){
   await Promise.all(items.map((i,k)=>fly(from[k],to,{t:S.slots[i].t,up:true,dur:620,delay:k*130})));
   let pts=0; const pairs0=fishPairs(P());
   for(const i of items){const s=S.slots[i];P().bank.push(s.t);pts+=TYPES[s.t].pts;away.delete(s.id);S.slots[i]=null;forget(i)}
-  pts+=fishPairs(P())-pairs0;
+  pts+=fishPairs(P())-pairs0; S.turn.nBanked=(S.turn.nBanked||0)+items.length; P().bestHaul=Math.max(P().bestHaul||0,S.turn.nBanked);
   S.turn.rev=S.turn.rev.filter(i=>S.slots[i]); S.turn.banked+=pts; bump(S.cur); render();
   return pts;
 }
@@ -1743,7 +1775,7 @@ async function hostOpen(st){
   let room; try{ room=await NET.lobby.join('jf-'+code) }catch(e){ NET.err='Couldn’t open an online game right now. Try again in a moment.'; return render() }
   const n=st.count;
   NET.room=room; NET.role='host'; NET.code=code; NET.setup=st; NET.err='';
-  NET.g={v:1,code,st:'wait',names:st.names.slice(0,n).map((v,i)=>cleanName(v)||`Player ${i+1}`),kinds:st.kinds.slice(0,n),avs:(st.avatars||[]).slice(0,n).map(a=>a||''),seats:{},acks:{},seed:0,h:0,log:''};
+  NET.g={v:1,code,st:'wait',names:st.names.slice(0,n).map((v,i)=>cleanName(v)||`Player ${i+1}`),kinds:st.kinds.slice(0,n),avs:(st.avatars||[]).slice(0,n).map(a=>a||''),seats:{},acks:{},seed:0,h:0,log:'',hide:st.hidden!==false};
   S={screen:'wait',setup:st};
   bindRoom(); publishG(); lobbyAnnounce(); render();
 }
@@ -1787,7 +1819,7 @@ function hostAppend(a){
   NET.log=g.log.split(','); publishG(); pump();
 }
 function hostStart(){
-  const g=NET.g, st={count:g.names.length,names:g.names.slice(),kinds:g.kinds.slice(),avatars:(g.avs||[]).map(a=>a||null)};
+  const g=NET.g, st={count:g.names.length,names:g.names.slice(),kinds:g.kinds.slice(),avatars:(g.avs||[]).map(a=>a||null),hidden:g.hide!==false};
   const seed=Math.floor(Math.random()*2147483647);
   newGame(st,seed); S.setup=NET.setup||st; S.net={host:true,g,applied:0}; S.phase='flip';
   g.seed=seed; g.log=''; g.acks={}; g.st='play'; g.h=0;
@@ -1829,7 +1861,7 @@ function guestOnPeers(){
   }
 }
 function guestStart(g,seat){
-  newGame({count:g.names.length,names:g.names.slice(),kinds:g.kinds.slice(),avatars:(g.avs||[]).map(a=>a||null)},g.seed);
+  newGame({count:g.names.length,names:g.names.slice(),kinds:g.kinds.slice(),avatars:(g.avs||[]).map(a=>a||null),hidden:g.hide!==false},g.seed);
   S.h=g.h; S.net={host:false,seat,seed:g.seed,code:g.code}; S.phase='flip';
   NET.log=g.log?g.log.split(','):[]; NET.applied=0; NET.ffUntil=NET.log.length; NET.pending=null;
   NET.reqN=Math.max(NET.reqN,g.acks[seat]||0);
@@ -1943,6 +1975,7 @@ function renderWait(){
     const so=btns.querySelector('#startOnline'); if(so) so.onclick=()=>{ sfx('turn'); hostStart() };
     const sr=head.querySelector('#shareRoom'); if(sr) sr.onclick=async()=>{ const u=new URL(location.href); u.search=''; u.hash=''; u.searchParams.set('join',g.code);
       try{ if(navigator.share) await navigator.share({title:T('title'),text:'Join my '+T('title')+' game: code '+g.code.toUpperCase(),url:u.href}); else { await navigator.clipboard.writeText(u.href); sr.textContent='Copied!' } }catch(e){} };
+    if(sr&&NET.autoShare){ NET.autoShare=false; sr.classList.add('pulse'); sr.click() }
   }
   const lw=btns.querySelector('#leaveWait'); if(lw) lw.onclick=async()=>{ await leaveOnline(); S=setupState(S.setup||NET.setup); render() };
 }
@@ -2806,7 +2839,7 @@ async function doFlip(i){
   }
   // action token: bank the catch, then the token moves into the card and later on to the scrap pile
   const pts=await bankFlights(); S.turn.act=i;
-  const banked=pts?TT('bankedPrefix',{points:plural(pts,'point')})+' ':'';
+  const banked=pts?TT('bankedPrefix',{points:ptsW(pts)})+' ':'';
   if(s.t==='extra'){
     S.turn.pending={type:'extra'};
     await toCard(i,{k:'extra',t:'extra',title:TT('extraTitle'),body:TT('extraBody',{banked,name:p.name})});
@@ -2904,7 +2937,7 @@ async function endPeek(){
   endTurn(TT('sumPeek',{name:P().name,banked:bankedNote(),tokens:plural(n,'token')}));
 }
 
-async function doBank(){ const pts=await bankFlights(); endTurn(TT('sumBanked',{name:P().name,points:plural(pts,'point')})) }
+async function doBank(){ const pts=await bankFlights(); endTurn(TT('sumBanked',{name:P().name,points:ptsW(pts)})) }
 
 async function doContinue(){
   const pd=S.turn.pending, p=P();
@@ -2954,7 +2987,7 @@ function endTurn(summary){
   S.phase=(!S.net&&!isAI(P())&&humans>1)?'handoff':'flip';
   render();
 }
-function finish(){ cloudDrop(S.saveCode); S.screen='over'; try{ SOC.recordGame() }catch(e){ console.warn('stats',e) } try{ TRACK.gameEnd() }catch(e){} S.phase=null; render(); sfx('fanfare'); if(S.net&&S.net.host){NET.g.st='over';publishG();lobbyAnnounce()} }
+function finish(){ cloudDrop(S.saveCode); S.screen='over'; try{ SOC.recordGame() }catch(e){ console.warn('stats',e) } try{ TRACK.gameEnd() }catch(e){} try{ endExtras() }catch(e){ console.warn('end',e) } S.phase=null; render(); sfx('chime'); if(S.net&&S.net.host){NET.g.st='over';publishG();lobbyAnnounce()} }
 
 // ---------- home page: Play and Guide tabs, and narrators on each section ----------
 const HOME={tab:'play'};
@@ -3209,6 +3242,7 @@ function render(){
   if(S.screen==='over') return renderOver();
   if(S.screen==='wait') return renderWait();
   renderGame();
+  try{ coachCheck() }catch(e){}
 }
 
 // You can look at your own hand: on your turn when passing one device around, any time on your own device.
@@ -3238,6 +3272,7 @@ function playersCardHTML(st,kinds){ return `
       <span class="label">${TX('players')}</span>
       <div class="stepper"><button type="button" id="minus" aria-label="Fewer players">−</button><output id="count">${st.count}</output><button type="button" id="plus" aria-label="More players">+</button><span class="muted">2 to 8, passing one device</span></div>
       <div class="names">${st.names.slice(0,st.count).map((n,i)=>`<div class="name ${st.kinds[i]!=='human'?'bot':''}"><button type="button" class="avbtn${st.avatars[i]?' has-av':''}" data-av="${i}" style="--c:${COLORS[i]}" aria-label="Choose a sea creature for ${esc(n)}" title="Choose a sea creature">${st.avatars[i]?`<img src="${avSrc(st.avatars[i])}" alt="">`:'<span>＋</span>'}</button><input id="name${i}" data-i="${i}" maxlength="16" value="${esc(n)}" aria-label="Player ${i+1} name"><select id="kind${i}" data-i="${i}" aria-label="Player ${i+1} type">${kinds.map(([v,l])=>`<option value="${v}" ${st.kinds[i]===v?'selected':''}>${l}</option>`).join('')}</select></div>`).join('')}</div>
+      <label class="hidesw"><input type="checkbox" id="hideScores" ${st.hidden!==false?'checked':''}> <span>Hide scores until the end<small>You only see your own score. Everyone’s is revealed when the game ends.</small></span></label>
       ${NET.err?`<p class="err">${esc(NET.err)}</p>`:''}
       <button class="btn primary" id="start">${st.kinds.slice(0,st.count).includes('remote')?TX('openOnline'):TX('startGame')}</button>
     </div>` }
@@ -3265,7 +3300,7 @@ function renderSetup(){
   const kinds=KINDS.filter(([v])=>v!=='remote'||NET.lobby||st.kinds.includes('remote'));
   app.innerHTML=`
     ${menuHeaderHTML()}
-    ${HOME.tab==='guide'?`<button class="linkbtn guideback" data-hometab="play">${TX('guideBack')}</button>${trayCardHTML()}${rulesCardHTML()}`:`${installCardHTML()}${resume?resumeCardHTML(resume):''}${codeCardHTML()}${playersCardHTML(st,kinds)}
+    ${HOME.tab==='guide'?`<button class="linkbtn guideback" data-hometab="play">${TX('guideBack')}</button>${trayCardHTML()}${achCardHTML()}${rulesCardHTML()}`:`${installCardHTML()}${resume?resumeCardHTML(resume):''}${heroCardHTML()}${dailyCardHTML()}${codeCardHTML()}${playersCardHTML(st,kinds)}
     <div class="card" id="lobby" hidden></div>
     ${lbCardHTML()}`}
     ${UPD.ready?`<button class="btn small updbtn" id="updBtn">${TX('updateReady')}</button>`:''}
@@ -3297,6 +3332,8 @@ function renderSetup(){
     render();
   });
   if(HOME.tab==='play'){
+  wireHero(app);
+  const hs=app.querySelector('#hideScores'); if(hs) hs.onchange=()=>{ st.hidden=hs.checked; save() };
   app.querySelector('#minus').onclick=()=>{sync();st.count=Math.max(2,st.count-1);render()};
   app.querySelector('#plus').onclick=()=>{sync();st.count=Math.min(8,st.count+1);render()};
   app.querySelector('#start').onclick=()=>{
@@ -3411,7 +3448,7 @@ function renderGame(){
   const pend=turnPts(), pl=pulse&&Date.now()<pulse.until?pulse.p:-1;
   const sc=app.querySelector('#scores'), n=S.players.length;
   sc.style.setProperty('--cols',n<=4?n:Math.ceil(n/2)); sc.classList.toggle('compact',n>4);
-  sc.innerHTML=S.players.map((p,i)=>`<div class="chip ${i===S.cur?'on':''} ${i===pl?'got':''}" data-p="${i}" style="--c:${p.color}" title="${esc(p.name)}${isAI(p)?' (AI, '+AI[p.kind].label+')':p.kind==='remote'?' (remote)':''}">${badge(p,i,isAI(p)?'bot':'')}<span>${esc(p.name)}</span><b>${score(p)}${i===S.cur&&pend?`<small>+${pend}</small>`:''}</b>${isAI(p)?`<em>AI ${AI[p.kind].label[0]}</em>`:p.kind==='remote'?'<em>NET</em>':''}</div>`).join('');
+  sc.innerHTML=S.players.map((p,i)=>`<div class="chip ${i===S.cur?'on':''} ${i===pl?'got':''}" data-p="${i}" style="--c:${p.color}" title="${esc(p.name)}${isAI(p)?' (AI, '+AI[p.kind].label+')':p.kind==='remote'?' (remote)':''}">${badge(p,i,isAI(p)?'bot':'')}<span>${esc(p.name)}</span><b>${seesScore(i)?score(p):'<span aria-label="hidden score">?</span>'}${i===S.cur&&pend&&seesScore(i)?`<small>+${pend}</small>`:''}</b>${isAI(p)?`<em>AI ${AI[p.kind].label[0]}</em>`:p.kind==='remote'?'<em>NET</em>':''}</div>`).join('');
   boardEl.style.setProperty('--c',P().color);
   app.querySelector('#tableCount').innerHTML=`On the table <b>${onTable()}</b> · game ends at 3${S.net?(!S.net.host&&!NET.hostHere?' · <span class="err">Host offline</span>':' · Online'):''}`;
   app.querySelector('#scrapCount').textContent=S.scrap.length;
@@ -3434,8 +3471,8 @@ function renderGame(){
     mini=avatar;
     title=fmt(TT('turnTitle',{name:p.name}));
     if(S.summary&&!S.turn.rev.length) sub=fmt(S.summary);
-    else if(bot) sub=fmt(TT(pend?'statusThinkingPts':'statusThinking',{pts:pend}));
-    else if(!me) sub=fmt(TT(pend?'statusWaitingPts':'statusWaiting',{pts:pend,name:p.name}));
+    else if(bot) sub=fmt(TT(pend&&showPts()?'statusThinkingPts':'statusThinking',{pts:pend}));
+    else if(!me) sub=fmt(TT(pend&&showPts()?'statusWaitingPts':'statusWaiting',{pts:pend,name:p.name}));
     else sub=fmt(pend?(fd?TT('statusMore',{pts:pend}):TT('statusNoneLeft')):TT('statusFlip'));
     if(me&&canSeeHand(S.cur)) acts=`<button class="btn ghost small" id="handBtn">${TX('handBtn')}</button>`;
     if(me) acts+=`<button class="btn primary" id="bankBtn" ${pend&&!busy&&!NET.pending&&S.phase==='flip'?'':'disabled'}>${TX('bank')}${pend?bankLabel(pend):''}</button>`;
@@ -3573,11 +3610,11 @@ function renderOver(){
   let place=0;
   ov.hidden=false;
   ov.innerHTML=`<div class="sheet">${narrHTML('over','narrator big')}<span class="label">${TX('gameOver')} · ${esc(roomName()||'')}</span>
-    <h2>${winners.length>1?'A tie between '+winners.map(w=>esc(w.name)).join(' & '):esc(top.name)+' wins!'}</h2>${S.endNote?`<p class="muted">${esc(S.endNote)}</p>`:''}
+    <h2>${winners.length>1?'A tie between '+winners.map(w=>esc(w.name)).join(' & '):esc(top.name)+(top.name==='You'?' win!':' wins!')}</h2>${S.endNote?`<p class="muted">${esc(S.endNote)}</p>`:''}
     <div class="podium">${ranked.map((r,i)=>{ if(i===0||r.sc!==ranked[i-1].sc||r.jellies!==ranked[i-1].jellies) place=i+1;
-      return `<div class="row ${winners.includes(r)?'win':''}"><span class="n">${place}</span>${r.av?`<img class="rowav" src="${avSrc(r.av)}" alt="" style="background:${r.color}">`:`<i style="background:${r.color}"></i>`}<div><b>${esc(r.name)}</b><small>${fish(r)} fish · ${star(r)} starfish · ${r.jellies} jellyfish${r.pairs?' · '+fmt(TT('overPairs',{pairs:schools(r.pairs),bonus:r.pairs})):''}</small></div><span class="s">${r.sc}</span></div>`}).join('')}</div>
-    ${lbOverHTML()}
-    <div class="btnrow"><button class="btn primary" id="again">${TX('grudge')}</button><button class="btn ghost" id="setup">${TX('newPlayers')}</button></div><p class="foot">${copyHTML()}</p></div>`;
+      return `<div class="row ${winners.includes(r)?'win':''}" data-sc="${r.sc}"><span class="n">${place}</span>${r.av?`<img class="rowav" src="${avSrc(r.av)}" alt="" style="background:${r.color}">`:`<i style="background:${r.color}"></i>`}<div><b>${esc(r.name)}</b><small>${fish(r)} fish · ${star(r)} starfish · ${r.jellies} jellyfish${r.pairs?' · '+fmt(TT('overPairs',{pairs:schools(r.pairs),bonus:r.pairs})):''}</small></div><span class="s">${r.sc}</span></div>`}).join('')}</div>
+    <div class="overx">${overExtrasHTML()}${lbOverHTML()}</div>
+    <div class="btnrow"><button class="btn primary" id="again">${TX('grudge')}</button><button class="btn ghost" id="shareRes">Share</button><button class="btn ghost" id="setup">${TX('newPlayers')}</button></div><p class="foot">${copyHTML()}</p></div>`;
   app.innerHTML='';
   ov.querySelectorAll('[data-lbsend]').forEach(b=>b.onclick=()=>lbSubmit(+b.dataset.lbsend,false));
   ov.querySelectorAll('[data-lbanon]').forEach(b=>b.onclick=()=>lbSubmit(+b.dataset.lbanon,true));
@@ -3587,6 +3624,9 @@ function renderOver(){
   if(S.net&&!S.net.host){ again.textContent='Waiting for the host…'; again.disabled=true }
   else again.onclick=()=>{ if(S.net){ hostStart(); return } newGame(S.setup);render() };
   ov.querySelector('#setup').onclick=()=>{const st=S.setup;if(S.net)leaveOnline();S=setupState(st);try{localStorage.removeItem(KEY)}catch(e){};render()};
+  const sr=ov.querySelector('#shareRes'); sr.onclick=()=>{ sfx('tap'); const me=meSeat();
+    shareResult(sr,S.daily&&S.dailyOfficial&&dailyShareText(S.daily)||(me>=0?shareText(finalScore(S.players[me]),wonGame(me),''):`${top.name} won with ${top.sc} points in ${T('title')}`)) };
+  revealScores(ov.querySelector('.sheet'));
 }
 
 // ---------- splash ----------
@@ -3828,6 +3868,7 @@ const SOC=(()=>{
       try{ const {data}=await sb.from('gm_app_profiles').select('user_id,display_name,avatar,stats').eq('user_id',user.id).eq('app',GM.app).maybeSingle(); prof=data }catch(e){}
       // first time in Fliptide: start from the name and creature already used on this device (a fresh picture, not another game's)
       if(!prof){ prof={user_id:user.id,display_name:(myName()||acct.display_name||acct.username||'').slice(0,16)||null,avatar:avStore(myAvatar()),stats:{}}; await saveProfile({}) }
+      try{ const loc=jget('jf.ach',{}), pa=(prof.stats&&prof.stats.ach)||{}; if(Object.keys(loc).some(k=>!pa[k])) syncAch(loc); else if(Object.keys(pa).some(k=>!loc[k])) jset('jf.ach',{...pa,...loc}) }catch(e){}
       toGame(); await loadFriends(); joinSocial();
       try{ fch=sb.channel('ft-friends-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'friends'},()=>loadFriends()).subscribe() }catch(e){}
     }
@@ -3883,6 +3924,11 @@ const SOC=(()=>{
     });
   }
   // a finished game counts for whoever is you on this device: your online seat, or the seat with your name
+  function syncAch(have){
+    if(!user||!prof) return; const st={...(prof.stats||{})}, a={...(st.ach||{})}; let ch=false;
+    for(const k in have) if(!a[k]&&ACH.some(x=>x[0]===k)){ a[k]=have[k]; ch=true }
+    if(ch){ st.ach=a; saveProfile({stats:st}) }
+  }
   function recordGame(){
     if(!user||!prof||!S||!S.players||S.statsDone) return;
     const ppl=S.players.map((p,i)=>[p,i]).filter(([p])=>!isAI(p)&&p.kind!=='remote');
@@ -4117,6 +4163,7 @@ const SOC=(()=>{
         <label class="btn small ghost gmup">Upload a photo<input type="file" id="gmFile" accept="image/*" hidden></label></div>`:''}
       <div class="gmstats">${stat(g,g===1?'game':'games')}${stat(st.wins||0,'wins')}${stat(g?Math.round((st.wins||0)/g*100)+'%':'–','win rate')}${stat(st.best||0,'best score')}${stat(g?(st.points/g).toFixed(1):'–','avg score')}${stat(st.schools||0,'schools')}</div>
       <p class="muted st-small">Games count for the seat with your name on this device, or your seat in an online game.</p>
+      <span class="label">Achievements</span>${achGridHTML()}
       <button class="btn small ghost" id="gmOut">Sign out</button>`;
   }
   function friendsHTML(){
@@ -4177,7 +4224,7 @@ const SOC=(()=>{
     return ids.map(id=>{ const f=id===user.id?prof:fprofs.get(id), st=f&&f.stats||{}; return {id,name:nameOf(id)+(id===user.id?' (you)':''),av:avKey(f&&f.avatar),score:st.best||0,ts:st.last||0,games:st.games||0} })
       .filter(e=>e.games).sort((a,b)=>b.score-a.score||a.ts-b.ts).slice(0,10);
   }
-  return {enabled,init,open,openInvite,close,set _go(f){ go=f },wire,btnHTML,badge,recordGame,fromGame,board,get user(){ return user },get prof(){ return prof },_lists:()=>user?lists():null};
+  return {enabled,init,open,openInvite,close,set _go(f){ go=f },wire,btnHTML,badge,recordGame,syncAch,fromGame,board,get user(){ return user },get prof(){ return prof },_lists:()=>user?lists():null};
 })();
 // ---------- usage stats for the admin dashboard (admin.html): anonymous, no names unless signed in ----------
 // Each visit sends a small ping about every 30s while the game is on screen: active seconds (only while someone has touched
@@ -4227,8 +4274,227 @@ const TRACK=(()=>{
     rpc('gm_play_log',{p_id:id,p_app:GM.app,p_device:device,p_mode:(play&&play.mode)||'local',p_finished:true,p_score:me>=0?sc[me]:null,p_won:me>=0?(sc[me]===top&&js[me]===best):null});
     S.playId=null; play=null; ping();
   }
-  return {on,gameStart,gameEnd,get device(){ return device }};
+  async function call(fn,args){
+    const t=token(), r=await fetch(`${url}/rest/v1/rpc/${fn}`,{method:'POST',headers:{apikey:GM.key,Authorization:'Bearer '+(t||GM.key),'Content-Type':'application/json'},body:JSON.stringify(args)});
+    if(!r.ok) throw new Error(fn+' '+r.status); return r.json();
+  }
+  return {on,gameStart,gameEnd,call,get device(){ return device }};
 })();
+// ---------- quick play, Daily Fliptide, hidden scores, the end-of-game reveal, achievements and first-game tips ----------
+const jget=(k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v) }catch(e){ return d } };
+const jset=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)) }catch(e){} };
+// Hidden scores: during play you only see your own score; everyone's is revealed at the end.
+const seesScore=i=>!S||!S.hidden||S.screen!=='play'||canSeeHand(i);
+const showPts=()=>seesScore(S.cur);
+const ptsW=n=>showPts()?plural(n,'point'):'their catch';
+// the seat being played on this device (for personal bests, achievements and the daily result)
+function meSeat(){
+  if(!S||!S.players) return -1;
+  if(S.net) return S.net.host?S.players.findIndex(p=>p.kind==='human'):S.net.seat;
+  const ppl=S.players.map((p,i)=>[p,i]).filter(([p])=>!isAI(p)); if(ppl.length===1) return ppl[0][1];
+  const nm=[SOC.prof&&SOC.prof.display_name,myName()].filter(Boolean).map(n=>n.toLowerCase());
+  const f=ppl.find(([p])=>nm.includes(String(p.name).toLowerCase())); return f?f[1]:-1;
+}
+// Quick games (Play now, Daily, Play with a friend) never replace the custom setup saved on the Play tab.
+function quickSetup(kinds,names,extra){
+  const me=myName()||'Player 1', av=myAvatar();
+  return {count:kinds.length,kinds,names:[me,...names],avatars:[avOk(av)?av:null,...names.map(()=>null)],quick:true,hidden:true,...extra};
+}
+function playNow(){ sfx('tap'); newGame(quickSetup(['human','medium'],['Marlin'])); render() }
+async function playFriend(){
+  sfx('tap'); NET.err='';
+  if(!NET.lobby){ NET.err='Online play isn’t connected right now. Check your internet connection and reload the page.'; HOME.err=NET.err; return render() }
+  NET.autoShare=true; await hostOpen(quickSetup(['human','remote'],['Friend']));
+}
+
+// ----- Daily Fliptide: one deal for everyone each day (Mountain Time), one official try per device -----
+const DAILY_START=Date.UTC(2026,10,25);
+const DAILY={board:null,day:'',loading:false,err:''};
+const dailyDay=()=>mtDate().toISOString().slice(0,10);
+const dailyNo=(d=dailyDay())=>Math.round((Date.parse(d+'T00:00:00Z')-DAILY_START)/864e5)+1;
+const dailySeed=d=>{ let h=2166136261; for(const c of 'fliptide-daily-'+d){ h^=c.charCodeAt(0); h=Math.imul(h,16777619) } return (h>>>0)%2147483647 };
+const dailyRec=(d=dailyDay())=>{ const r=jget('jf.daily',{}); return r[d]||null };
+function dailySave(d,patch){ const r=jget('jf.daily',{}); r[d]={...(r[d]||{}),...patch}; for(const k of Object.keys(r).sort().slice(0,-14)) delete r[k]; jset('jf.daily',r) }
+function playDaily(){
+  sfx('tap'); const d=dailyDay(), rec=dailyRec(d), official=!rec;
+  if(official) dailySave(d,{started:Date.now()});
+  newGame(quickSetup(['human','medium'],['Marlin'],{daily:d}),dailySeed(d));
+  S.daily=d; S.dailyOfficial=official; S.started=Date.now(); render();
+}
+const rpcOn=()=>TRACK.on;
+async function gmCall(fn,args){
+  if(!rpcOn()) throw new Error('off');
+  const r=await TRACK.call(fn,args); return r;
+}
+async function dailyLoad(force){
+  const d=dailyDay(); if(!rpcOn()||DAILY.loading||(!force&&DAILY.day===d&&DAILY.board)) return;
+  DAILY.loading=true;
+  try{ DAILY.board=await gmCall('gm_daily_board',{p_app:GM.app,p_day:d,p_device:TRACK.device,p_limit:5}); DAILY.day=d; DAILY.err='' }catch(e){ DAILY.err='Couldn’t load today’s scores.' }
+  DAILY.loading=false; if(S&&S.screen==='setup'&&HOME.tab==='play') render();
+}
+async function dailySubmit(){
+  if(!S.dailyOfficial||S.dailySent) return; S.dailySent=true;
+  const me=meSeat(); if(me<0) return;
+  const p=S.players[me], sc=finalScore(p), won=wonGame(me), d=S.daily;
+  const k=myAvatar(), av=AVATARS[k]?'av:'+k:isPic(k)?k:'';
+  dailySave(d,{score:sc,won,done:Date.now(),fish:p.bank.filter(isFish).length,star:p.bank.filter(t=>t==='star').length,jelly:jellyCount(p)});
+  if(!rpcOn()) return;
+  try{
+    const r=await gmCall('gm_daily_submit',{p_app:GM.app,p_day:d,p_device:TRACK.device,p_name:((SOC.prof&&SOC.prof.display_name)||myName()||'Anonymous').slice(0,20),p_avatar:av,p_score:sc,p_won:won,p_duration:Math.max(60,Math.round((Date.now()-(S.started||Date.now()))/1000))});
+    if(r&&r.rank) dailySave(d,{rank:r.rank,total:r.total});
+    DAILY.board=null;
+  }catch(e){}
+  if(S.screen==='over'){ if(S.revealDone) render(); else S.overDirty=true }
+}
+function dailyCardHTML(){
+  const d=dailyDay(), rec=dailyRec(d), b=DAILY.day===d&&DAILY.board, rows=(b&&b.rows)||[];
+  const done=rec&&rec.done!=null;
+  return `<div class="card daily"><span class="label">Daily Fliptide #${dailyNo(d)}</span>
+    <p class="muted st-small">Everyone gets the same reef today. You against Medium AI, one official try. New table at midnight Mountain Time.</p>
+    ${done?`<p class="dres">You scored <b>${rec.score}</b>${rec.won?' and won':''}${rec.rank?` · <b>#${rec.rank}</b> of ${rec.total}`:''}.</p>`:''}
+    ${rpcOn()?(rows.length?`<ol class="dboard">${rows.map((r,i)=>`<li class="${r.mine?'me':''}"><span class="n">${i+1}</span>${r.avatar&&avOk(r.avatar.replace(/^av:/,''))?`<img src="${avSrc(r.avatar.replace(/^av:/,''))}" alt="">`:'<i></i>'}<b>${esc(r.name)}${r.mine?' (you)':''}</b><span class="s">${r.score}${r.won?' <small aria-label="won">✓ won</small>':''}</span></li>`).join('')}</ol>${b.total>rows.length?`<p class="muted st-small">${b.total} players today${b.mine&&b.mine.rank>rows.length?` · you’re #${b.mine.rank}`:''}</p>`:''}`
+      :`<p class="muted st-small">${DAILY.err?esc(DAILY.err):DAILY.loading||!b?'Loading today’s scores…':'No scores yet today. Be the first!'}</p>`):''}
+    <div class="btnrow"><button class="btn ${done?'ghost':'primary'}" id="dailyGo">${done?'Play again (practice)':rec?'Practice (your try is used)':'Play today’s reef'}</button>${done?`<button class="btn ghost" id="dailyShare">Share result</button>`:''}</div></div>`;
+}
+function shareText(sc,won,extra){ return `${extra}${won?'I won with':'I scored'} ${sc} points in ${T('title')}` }
+async function shareResult(btn,text){
+  const u=new URL(location.href); u.search=''; u.hash='';
+  try{ if(navigator.share) await navigator.share({title:T('title'),text,url:u.href}); else { await navigator.clipboard.writeText(text+'\n'+u.href); if(btn) btn.textContent='Copied!' } }catch(e){}
+}
+function dailyShareText(d){
+  const rec=dailyRec(d); if(!rec||rec.done==null) return '';
+  return `🌊 Daily ${T('title')} #${dailyNo(d)}\n${rec.won?'Won':'Played'} with ${rec.score} points${rec.rank?` · #${rec.rank} of ${rec.total}`:''}\n🐟${rec.fish||0} ⭐${rec.star||0} 🪼${rec.jelly||0}`;
+}
+function heroCardHTML(){
+  const d=dailyDay(), rec=dailyRec(d);
+  return `<div class="card hero"><button class="btn primary big" id="playNow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Play now<small>You vs Medium AI</small></button>
+    <div class="herorow"><button class="btn" id="heroDaily">Daily #${dailyNo(d)}${rec&&rec.done!=null?' <small>✓ played</small>':''}</button><button class="btn" id="playFriend">Play with a friend</button></div>
+    ${HOME.err?`<p class="err">${esc(HOME.err)}</p>`:''}<p class="muted st-small herohint">Or set up your own game below.</p></div>`;
+}
+function wireHero(root){
+  const pn=root.querySelector('#playNow'); if(pn) pn.onclick=playNow;
+  const hd=root.querySelector('#heroDaily'); if(hd) hd.onclick=()=>{ const c=root.querySelector('.card.daily'); if(c){ c.scrollIntoView({behavior:RM.matches?'auto':'smooth',block:'center'}); c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash') } };
+  const pf=root.querySelector('#playFriend'); if(pf) pf.onclick=()=>{ HOME.err=''; playFriend() };
+  const dg=root.querySelector('#dailyGo'); if(dg) dg.onclick=playDaily;
+  const ds=root.querySelector('#dailyShare'); if(ds) ds.onclick=()=>{ sfx('tap'); shareResult(ds,dailyShareText(dailyDay())) };
+  dailyLoad();
+}
+
+// ----- achievements: kept on this device and on your Grudge Match profile -----
+const ACH=[
+  ['first_game','Dive in','Finish your first game','🌊'],
+  ['first_win','Top of the tide','Win a game','🏆'],
+  ['school','School’s in','Bank a school of fish (two matching fish)','🐟'],
+  ['shoal','Shoal','Finish with 3 or more schools','🐠'],
+  ['haul','Big haul','Bank 6 or more tokens in one turn','🎣'],
+  ['stingfree','Sting-free','Win without keeping a jellyfish','🛡️'],
+  ['beat_hard','Shark tamer','Beat a Hard AI','🦈'],
+  ['high30','Deep diver','Score 30 or more','💎'],
+  ['daily','Daily dipper','Finish a Daily Fliptide','📅'],
+  ['streak5','Tide regular','Play on 5 days in a row','🔥'],
+  ['online','Long-distance rival','Finish an online game','🌐'],
+  ['party','Reef party','Finish a game with 5 or more players','🎉'],
+];
+const achHave=()=>{ const a=jget('jf.ach',{}); const p=SOC.prof&&SOC.prof.stats&&SOC.prof.stats.ach; if(p) for(const k in p) if(!a[k]) a[k]=p[k]; return a };
+function achCheck(){
+  if(!S||!S.players||S.achDone) return []; S.achDone=true;
+  const me=meSeat(); if(me<0) return [];
+  const p=S.players[me], sc=finalScore(p), won=wonGame(me), have=achHave(), got=[];
+  // days played in a row (Mountain Time)
+  const today=dailyDay(); let st=jget('jf.streak',{last:'',n:0});
+  if(st.last!==today){ const y=new Date(Date.parse(today+'T00:00:00Z')-864e5).toISOString().slice(0,10); st={last:today,n:st.last===y?st.n+1:1}; jset('jf.streak',st) }
+  const opp=S.players.filter((q,i)=>i!==me);
+  const test={first_game:true,first_win:won,school:fishPairs(p)>=1,shoal:fishPairs(p)>=3,haul:(p.bestHaul||0)>=6,stingfree:won&&jellyCount(p)===0,
+    beat_hard:won&&opp.some(q=>q.kind==='hard'),high30:sc>=30,daily:!!S.daily,streak5:st.n>=5,online:!!S.net,party:S.players.length>=5};
+  for(const [id] of ACH) if(test[id]&&!have[id]){ have[id]=Date.now(); got.push(id) }
+  if(got.length){ jset('jf.ach',have); try{ SOC.syncAch(have) }catch(e){} }
+  return got;
+}
+function achGridHTML(){
+  const have=achHave(), n=ACH.filter(([id])=>have[id]).length;
+  return `<div class="achgrid" role="list">${ACH.map(([id,name,how,ic])=>`<div class="ach ${have[id]?'on':''}" role="listitem" title="${esc(how)}"><span class="ic" aria-hidden="true">${have[id]?ic:'🔒'}</span><b>${esc(name)}</b><small>${have[id]?'Unlocked':'Locked'} · ${esc(how)}</small></div>`).join('')}</div><p class="muted st-small">${n} of ${ACH.length} unlocked</p>`;
+}
+const achCardHTML=()=>`<div class="card"><span class="label">Achievements</span>${achGridHTML()}</div>`;
+
+// ----- the end of the game: personal best, achievements, daily result and the score reveal -----
+function endExtras(){
+  const me=meSeat(); S.over={me,ach:[],best:false};
+  if(me>=0){
+    const sc=finalScore(S.players[me]), best=jget('jf.best',null);
+    if(best!=null&&sc>best) S.over.best=true; if(best==null||sc>best) jset('jf.best',sc);
+    S.over.prev=best;
+  }
+  try{ S.over.ach=achCheck() }catch(e){ console.warn('ach',e) }
+  jset('jf.played',(jget('jf.played',0)||0)+1);
+  if(S.daily) dailySubmit();
+}
+function overExtrasHTML(){
+  const o=S.over||{}, d=S.daily&&dailyRec(S.daily);
+  let h='';
+  if(o.best) h+=`<p class="pb">★ New personal best! <small>(was ${o.prev})</small></p>`;
+  if(S.daily) h+=`<div class="overdaily"><b>Daily Fliptide #${dailyNo(S.daily)}</b> ${S.dailyOfficial?(d&&d.rank?`· you’re <b>#${d.rank}</b> of ${d.total} today`:rpcOn()?'· sending your score…':''):'· practice round, not counted'}</div>`;
+  if(o.ach&&o.ach.length) h+=`<div class="newach"><span class="label">New achievement${o.ach.length>1?'s':''}</span>${o.ach.map(id=>{ const a=ACH.find(x=>x[0]===id); return `<div class="ach on"><span class="ic" aria-hidden="true">${a[3]}</span><b>${esc(a[1])}</b><small>${esc(a[2])}</small></div>` }).join('')}</div>`;
+  return h;
+}
+// counts each score up one player at a time, last place first and the winner last
+function revealScores(sheet){
+  const rows=[...sheet.querySelectorAll('.podium .row')].reverse(), head=sheet.querySelector('h2'), extra=sheet.querySelector('.overx');
+  const quick=RM.matches||S.revealDone||NET.ff;
+  const finish=()=>{ rows.forEach(r=>{ r.classList.add('shown'); r.querySelector('.s').textContent=r.dataset.sc }); head.classList.add('shown'); if(extra) extra.classList.add('shown'); sheet.classList.remove('revealing'); S.revealDone=true; if(S.overDirty){ S.overDirty=false; setTimeout(()=>{ if(S.screen==='over') render() },0) } };
+  if(quick){ finish(); return }
+  sheet.classList.add('revealing'); rows.forEach(r=>{ r.querySelector('.s').textContent='?' }); let skip=false;
+  const skipper=()=>{ skip=true }; sheet.addEventListener('pointerdown',skipper,{once:true});
+  (async()=>{
+    await new Promise(r=>setTimeout(r,450));
+    for(const r of rows){
+      if(skip||!r.isConnected) break;
+      r.classList.add('shown','counting'); const s=r.querySelector('.s'), to=+r.dataset.sc, steps=Math.min(18,Math.abs(to)||1);
+      for(let k=1;k<=steps&&!skip;k++){ s.textContent=Math.round(to*k/steps); if(k%3===0) sfx('tap'); await new Promise(z=>setTimeout(z,40)) }
+      s.textContent=to; r.classList.remove('counting'); r.classList.add('landed');
+      await new Promise(z=>setTimeout(z,r===rows[rows.length-1]?120:520));
+    }
+    if(!r0()) return; finish(); sfx('fanfare');
+    const w=sheet.querySelector('.podium .row.win'); if(w&&!skip) try{ cheerBurst(w) }catch(e){}
+  })();
+  function r0(){ return sheet.isConnected }
+}
+// a burst of bubbles from the winner's row
+function cheerBurst(el){
+  const r=el.getBoundingClientRect(), layer=document.createElement('div'); layer.className='popfx'; let html='';
+  for(let i=0;i<22;i++){ const a=Math.random()*Math.PI*2, d=40+Math.random()*120, s=8+Math.random()*18;
+    html+=`<i class="cb" style="left:${r.left+r.width*(.15+Math.random()*.7)}px;top:${r.top+r.height/2}px;width:${s}px;height:${s}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d-60}px;animation-delay:${Math.random()*120}ms"></i>` }
+  layer.innerHTML=html; document.body.appendChild(layer); setTimeout(()=>layer.remove(),1500);
+}
+
+// ----- first-game tips: short, each shown once, skippable -----
+const COACH={tips:{
+  start:'Tap any face-down token to flip it. Fish and starfish score points.',
+  catch:'Nice catch! Flip again to push your luck, or tap <b>Bank</b> to keep it. A jellyfish or shark ends your turn badly.',
+  school:'Two matching fish in your hand make a school: +1 bonus point.',
+  remember:'Tokens stay in their spots after they flip back. Remember where things are!',
+  hidden:'Other players’ scores are hidden until the end. Tap your own chip to see your hand.'
+}};
+function coachSeen(){ return jget('jf.coach',{}) }
+function coachCheck(){
+  const seen=coachSeen(); if(seen.off||!S||S.screen!=='play'||document.querySelector('.coach')) return;
+  if(!mine(S.cur)||isAI(P())||S.phase!=='flip'||busy) return;
+  const me=P(), rev=S.turn.rev||[];
+  let id=null;
+  if(!seen.start&&!rev.length) id='start';
+  else if(!seen.catch&&rev.some(i=>isCatch(S.slots[i]))) id='catch';
+  else if(!seen.school&&fishPairs(me)>0&&!rev.length) id='school';
+  else if(!seen.remember&&S.turnNo>=2&&!rev.length) id='remember';
+  else if(!seen.hidden&&S.hidden&&S.turnNo>=3&&!rev.length) id='hidden';
+  if(!id) return;
+  const el=document.createElement('div'); el.className='coach'; el.setAttribute('role','status');
+  el.innerHTML=`<p>${COACH.tips[id]}</p><div><button class="btn small" data-ok>Got it</button><button class="linkbtn" data-off>Skip tips</button></div>`;
+  const close=off=>{ const s=coachSeen(); s[id]=1; if(off) s.off=1; jset('jf.coach',s); el.remove() };
+  el.querySelector('[data-ok]').onclick=()=>{ sfx('tap'); close(false) };
+  el.querySelector('[data-off]').onclick=()=>{ sfx('tap'); close(true) };
+  document.body.appendChild(el);
+  // a tip disappears by itself once the moment has passed
+  const t=setInterval(()=>{ if(!el.isConnected){ clearInterval(t); return } if(!S||S.screen!=='play'||!mine(S.cur)||(id==='start'&&S.turn.rev.length)||(id!=='catch'&&S.turn.rev.length&&id!=='start')){ clearInterval(t); const s=coachSeen(); s[id]=1; jset('jf.coach',s); el.remove() } },400);
+}
 function start(d){
   try{ applyAccess() }catch(e){}
   const sp=document.getElementById('splash');
